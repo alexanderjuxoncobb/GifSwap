@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm init:*)",
+      "Bash(npm pkg set:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(npm run dev:*)",
+      "mcp__context7__get-library-docs",
+      "Bash(npm uninstall:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(cp:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(open /Users/zebcobb/repos/gif-face-swap/test-gifs.html)",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__read_file",
+      "Bash(curl:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}
