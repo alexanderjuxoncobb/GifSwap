@@ -37,7 +37,7 @@ export const PhotoGallery = ({
     const handleResize = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setPhotoSize(140);
+        setPhotoSize(120);  // Reduced from 140 to 120 for better mobile spacing
       } else if (width < 1024) {
         setPhotoSize(180);
       } else {
@@ -136,12 +136,13 @@ export const PhotoGallery = ({
 
   // Generate responsive grid positions for all memes
   const photos = allMemes.map((src, index) => {
-    // Mobile layout: 2 columns with 20px gap (140px GIF size)
+    // Mobile layout: 2 columns with proper gap (120px GIF size)
     const mobileRow = Math.floor(index / 2);
     const mobileCol = index % 2;
-    // Position from center, accounting for GIF width (140px / 2 = 70px)
-    const mobileX = mobileCol === 0 ? -150 : 10;  // Left: -80 - 70, Right: 80 - 70
-    const mobileY = mobileRow * 200;
+    // Position from center, accounting for GIF width (120px / 2 = 60px)
+    // For 375px screen: available ~355px, 2×120px = 240px, gap = 115px/2 = ~57px from center
+    const mobileX = mobileCol === 0 ? -130 : 10;  // Left: -70 - 60, Right: 70 - 60
+    const mobileY = mobileRow * 180;  // Reduced vertical spacing to match smaller GIFs
 
     // Tablet layout: 3 columns with 30px gap (180px GIF size)
     const tabletRow = Math.floor(index / 3);

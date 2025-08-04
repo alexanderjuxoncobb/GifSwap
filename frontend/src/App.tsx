@@ -267,7 +267,7 @@ function App() {
             <img src="/logo.svg" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
           </motion.button>
         </motion.div>
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 flex-1 max-w-[1600px]">
+        <div className="w-full mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 flex-1 max-w-[1600px]">
           <AnimatePresence mode="wait">
             {appState === 'selectGifs' && (
               <motion.div
