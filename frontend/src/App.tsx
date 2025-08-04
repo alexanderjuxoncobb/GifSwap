@@ -573,7 +573,7 @@ function App() {
           <p className="text-sm text-gray-500 font-mono">
             Made by{' '}
             <a 
-              href="https://github.com/alexanderjuxoncobb/gif-face-swap" 
+              href="https://github.com/alexanderjuxoncobb" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-gray-500 hover:text-gray-400 hover:underline"
