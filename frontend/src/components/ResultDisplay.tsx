@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '../config';
+
 interface ResultDisplayProps {
   resultGifUrls: string[];
   selectedGifs: string[];
@@ -8,7 +10,7 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
   const handleDownload = async (gifUrl: string, index: number) => {
     try {
       // Use the optimize endpoint to ensure proper GIF format for WhatsApp
-      const optimizeResponse = await fetch('http://localhost:3001/api/optimize-gif', {
+      const optimizeResponse = await fetch(`${API_BASE_URL}/api/optimize-gif`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,7 +52,7 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
       // Fallback to direct download
       try {
         const a = document.createElement('a');
-        a.href = `http://localhost:3001/api/download-whatsapp-video?url=${encodeURIComponent(gifUrl)}`;
+        a.href = `${API_BASE_URL}/api/download-whatsapp-video?url=${encodeURIComponent(gifUrl)}`;
         a.download = `whatsapp-reaction-${index + 1}.mp4`;
         document.body.appendChild(a);
         a.click();
@@ -64,7 +66,7 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
   const handleCopyToClipboard = async (gifUrl: string) => {
     try {
       // Use the optimize endpoint to ensure proper GIF format
-      const optimizeResponse = await fetch('http://localhost:3001/api/optimize-gif', {
+      const optimizeResponse = await fetch(`${API_BASE_URL}/api/optimize-gif`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

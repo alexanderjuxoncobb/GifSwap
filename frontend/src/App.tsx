@@ -6,6 +6,7 @@ import { PhotoGallery } from './components/ui/gallery';
 import EnhancedResultDisplay from './components/EnhancedResultDisplay';
 import { MotionTrackingProvider } from './components/MotionTrackingProvider';
 import { MotionButton } from './components/ui/motion-button';
+import { API_BASE_URL } from './config';
 
 type AppState = 'selectGifs' | 'selectMode' | 'upload' | 'individualUpload' | 'processing' | 'result';
 type UploadMode = 'single' | 'individual';
@@ -169,7 +170,7 @@ function App() {
       targetGifUrl: gifUrl,
     };
     
-    const response = await fetch('http://localhost:3001/api/swap', {
+    const response = await fetch(`${API_BASE_URL}/api/swap`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -199,7 +200,7 @@ function App() {
       const poll = async () => {
         try {
           console.log('Making poll request for:', predictionId);
-          const response = await fetch(`http://localhost:3001/api/swap/status/${predictionId}`);
+          const response = await fetch(`${API_BASE_URL}/api/swap/status/${predictionId}`);
           
           if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);

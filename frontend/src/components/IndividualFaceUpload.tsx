@@ -2,6 +2,7 @@ import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { springConfig } from './MotionTrackingProvider';
 import { MotionButton } from './ui/motion-button';
+import { API_BASE_URL } from '../config';
 
 interface IndividualFaceUploadProps {
   selectedGifs: string[];
@@ -88,7 +89,7 @@ export default function IndividualFaceUpload({
     formData.append('image', file);
 
     try {
-      const response = await fetch('http://localhost:3001/api/upload', {
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         body: formData,
       });

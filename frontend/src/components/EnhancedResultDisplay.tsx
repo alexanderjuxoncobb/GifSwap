@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { MotionButton } from './ui/motion-button';
+import { API_BASE_URL } from '../config';
 
 interface ResultDisplayProps {
   resultGifUrls: (string | null)[];
@@ -13,7 +14,7 @@ interface ResultDisplayProps {
 export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProcessing, processingStatus }: ResultDisplayProps) {
   const handleDownload = async (gifUrl: string, index: number) => {
     try {
-      const endpoint = 'http://localhost:3001/api/optimize-gif-original';
+      const endpoint = `${API_BASE_URL}/api/optimize-gif-original`;
       const filename = `reaction-${index + 1}.gif`;
       const mimeType = 'image/gif';
       
@@ -56,7 +57,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
       
       // Fallback to direct download
       try {
-        const fallbackUrl = `http://localhost:3001/api/download-gif?url=${encodeURIComponent(gifUrl)}`;
+        const fallbackUrl = `${API_BASE_URL}/api/download-gif?url=${encodeURIComponent(gifUrl)}`;
         
         const a = document.createElement('a');
         a.href = fallbackUrl;

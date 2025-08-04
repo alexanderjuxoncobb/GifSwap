@@ -1,6 +1,7 @@
 import { motion, useMotionValue, useTransform, type PanInfo } from 'framer-motion';
 import { useState } from 'react';
 import { springConfig, swipeConfig } from './MotionTrackingProvider';
+import { API_BASE_URL } from '../config';
 
 interface MotionResultDisplayProps {
   resultGifUrls: string[];
@@ -22,7 +23,7 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
   const handleDownload = async (gifUrl: string, index: number) => {
     try {
       // Use the optimize endpoint to ensure proper GIF format for WhatsApp
-      const optimizeResponse = await fetch('http://localhost:3001/api/optimize-gif', {
+      const optimizeResponse = await fetch(`${API_BASE_URL}/api/optimize-gif`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
       // Fallback to direct download
       try {
         const a = document.createElement('a');
-        a.href = `http://localhost:3001/api/download-whatsapp-video?url=${encodeURIComponent(gifUrl)}`;
+        a.href = `${API_BASE_URL}/api/download-whatsapp-video?url=${encodeURIComponent(gifUrl)}`;
         a.download = `whatsapp-reaction-${index + 1}.mp4`;
         document.body.appendChild(a);
         a.click();
@@ -78,7 +79,7 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
   const handleCopyToClipboard = async (gifUrl: string) => {
     try {
       // Use the optimize endpoint to ensure proper GIF format
-      const optimizeResponse = await fetch('http://localhost:3001/api/optimize-gif', {
+      const optimizeResponse = await fetch(`${API_BASE_URL}/api/optimize-gif`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

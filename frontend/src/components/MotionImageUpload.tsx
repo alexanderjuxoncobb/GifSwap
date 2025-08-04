@@ -1,6 +1,7 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { springConfig } from './MotionTrackingProvider';
+import { API_BASE_URL } from '../config';
 
 interface MotionImageUploadProps {
   onImageUpload: (imageData: string) => void;
@@ -51,7 +52,7 @@ export default function MotionImageUpload({ onImageUpload }: MotionImageUploadPr
     formData.append('image', file);
 
     try {
-      const response = await fetch('http://localhost:3001/api/upload', {
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
         method: 'POST',
         body: formData,
       });
