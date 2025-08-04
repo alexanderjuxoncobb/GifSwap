@@ -37,7 +37,10 @@ export const PhotoGallery = ({
     const handleResize = () => {
       const width = window.innerWidth;
       if (width < 640) {
-        setPhotoSize(120);  // Reduced from 140 to 120 for better mobile spacing
+        // Dynamic sizing for mobile: use ~35% of screen width for each GIF
+        // This gives good spacing while maximizing GIF size
+        const dynamicSize = Math.floor(width * 0.35);
+        setPhotoSize(Math.max(100, Math.min(dynamicSize, 160))); // Min 100px, max 160px
       } else if (width < 1024) {
         setPhotoSize(180);
       } else {
@@ -136,13 +139,16 @@ export const PhotoGallery = ({
 
   // Generate responsive grid positions for all memes
   const photos = allMemes.map((src, index) => {
-    // Mobile layout: 2 columns with proper gap (120px GIF size)
+    // Mobile layout: 2 columns with dynamic sizing
     const mobileRow = Math.floor(index / 2);
     const mobileCol = index % 2;
-    // Center the 2-column grid with equal spacing from center
-    // Gap between GIFs: 30px, so each GIF is 75px from center (60px half-width + 15px half-gap)
-    const mobileX = mobileCol === 0 ? -75 : 75;  // Left: -75px, Right: +75px (centered symmetrically)
-    const mobileY = mobileRow * 180;  // Reduced vertical spacing to match smaller GIFs
+    // Dynamic positioning based on current photo size
+    const halfWidth = photoSize / 2;
+    const gap = 20; // 20px gap between GIFs
+    const halfGap = gap / 2;
+    const distanceFromCenter = halfWidth + halfGap;
+    const mobileX = mobileCol === 0 ? -distanceFromCenter : distanceFromCenter;
+    const mobileY = mobileRow * (photoSize + 40);  // Dynamic vertical spacing based on size
 
     // Tablet layout: 3 columns with 30px gap (180px GIF size)
     const tabletRow = Math.floor(index / 3);
