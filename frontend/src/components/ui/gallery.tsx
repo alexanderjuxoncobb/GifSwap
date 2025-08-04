@@ -136,23 +136,23 @@ export const PhotoGallery = ({
 
   // Generate responsive grid positions for all memes
   const photos = allMemes.map((src, index) => {
-    // Mobile layout: 2 columns
+    // Mobile layout: 2 columns with 20px gap
     const mobileRow = Math.floor(index / 2);
     const mobileCol = index % 2;
-    const mobileX = mobileCol === 0 ? -70 : 70;
-    const mobileY = mobileRow * 180;
+    const mobileX = mobileCol === 0 ? -80 : 80;  // Increased from 70 to 80 for 20px gap
+    const mobileY = mobileRow * 200;  // Increased from 180 to add vertical spacing
 
-    // Tablet layout: 3 columns
+    // Tablet layout: 3 columns with 30px gap
     const tabletRow = Math.floor(index / 3);
     const tabletCol = index % 3;
-    const tabletX = (tabletCol - 1) * 200;
-    const tabletY = tabletRow * 220;
+    const tabletX = (tabletCol - 1) * 210;  // Increased from 200 to 210 for 30px gap
+    const tabletY = tabletRow * 240;  // Increased from 220 for better vertical spacing
 
-    // Desktop layout: 5 columns (original)
+    // Desktop layout: 5 columns with 40px gap
     const desktopRow = Math.floor(index / 5);
     const desktopCol = index % 5;
-    const desktopX = (desktopCol - 2) * 260;
-    const desktopY = desktopRow * 240;
+    const desktopX = (desktopCol - 2) * 280;  // Increased from 260 to 280 for 60px gap
+    const desktopY = desktopRow * 260;  // Increased from 240 for better vertical spacing
 
     return {
       id: index + 1,
