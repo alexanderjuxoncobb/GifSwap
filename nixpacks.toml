@@ -2,10 +2,10 @@
 nixPkgs = ["nodejs-18_x", "ffmpeg"]
 
 [phases.install]
-cmds = ["cd backend && npm ci"]
+cmds = ["npm install"]
 
-[phases.build]
-cmds = ["cd backend && npm run build"]
+[phases.build]  
+cmds = ["npm run build"]
 
 [start]
-cmd = "cd backend && node dist/index.js"
+cmd = "npm start"
