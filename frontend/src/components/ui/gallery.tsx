@@ -1,4 +1,4 @@
-import { type Ref, forwardRef, useState, useEffect } from "react";
+import { type Ref, forwardRef, useState, useEffect, useRef } from "react";
 import { motion, useMotionValue } from "framer-motion";
 
 import { cn } from "@/lib/utils";
@@ -15,6 +15,8 @@ export const PhotoGallery = ({
   const [isVisible, setIsVisible] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [photoSize, setPhotoSize] = useState(220);
+  const galleryContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
 
   useEffect(() => {
     // First make the container visible with a fade-in
@@ -180,10 +182,27 @@ export const PhotoGallery = ({
   });
 
   const handleMemeClick = (memeUrl: string) => {
+    // Save current scroll position before state update
+    if (galleryContainerRef.current) {
+      scrollPositionRef.current = galleryContainerRef.current.scrollTop;
+    }
+    
     if (onMemeSelect) {
       onMemeSelect(memeUrl);
     }
   };
+
+  // Restore scroll position after selectedMemes changes
+  useEffect(() => {
+    if (galleryContainerRef.current && scrollPositionRef.current > 0) {
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        if (galleryContainerRef.current) {
+          galleryContainerRef.current.scrollTop = scrollPositionRef.current;
+        }
+      });
+    }
+  }, [selectedMemes]);
 
   return (
     <div className="mt-4 sm:mt-6 lg:mt-8 pb-4 sm:pb-6 lg:pb-8 relative">
@@ -193,7 +212,10 @@ export const PhotoGallery = ({
       <p className="text-xs sm:text-sm lg:text-md mb-4 sm:mb-6 lg:mb-8 text-center font-light uppercase tracking-widest text-slate-600 dark:text-slate-400">
         Choose from below (can select multiple)
       </p>
-      <div className="relative mb-4 sm:mb-6 lg:mb-8 min-h-[600px] sm:min-h-[700px] lg:h-[720px] w-full items-start sm:items-center justify-start sm:justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible">
+      <div 
+        ref={galleryContainerRef}
+        className="relative mb-4 sm:mb-6 lg:mb-8 min-h-[600px] sm:min-h-[700px] lg:h-[720px] w-full items-start sm:items-center justify-start sm:justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible"
+      >
         <motion.div
           className="relative mx-auto flex w-full max-w-7xl justify-center"
           initial={{ opacity: 0 }}
@@ -346,7 +368,6 @@ export const Photo = ({
       onMouseLeave={resetMouse}
       onClick={onClick}
       draggable={false}
-      tabIndex={0}
     >
       <div className="relative h-full w-full overflow-hidden rounded-3xl shadow-sm">
         <MotionImage
