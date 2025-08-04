@@ -6,23 +6,25 @@ import { PhotoGallery } from './components/ui/gallery';
 import EnhancedResultDisplay from './components/EnhancedResultDisplay';
 import { MotionTrackingProvider } from './components/MotionTrackingProvider';
 import { MotionButton } from './components/ui/motion-button';
+import ErrorDisplay from './components/ui/error-display';
+import { parseError, parseGenericError } from './lib/error-utils';
 import { API_BASE_URL } from './config';
 
 type AppState = 'selectGifs' | 'selectMode' | 'upload' | 'individualUpload' | 'processing' | 'result';
-type UploadMode = 'single' | 'individual';
 
 function App() {
   const [appState, setAppState] = useState<AppState>('selectGifs');
   const [selectedGifs, setSelectedGifs] = useState<string[]>([]);
-  const [, setUploadMode] = useState<UploadMode>('single');
-  const [, setUploadedImageData] = useState<string>('');
-  const [, setFaceMapping] = useState<Record<string, string>>({});
+  const [uploadMode, setUploadMode] = useState<'single' | 'individual'>('single');
+  const [uploadedImageData, setUploadedImageData] = useState<string>('');
+  const [faceMapping, setFaceMapping] = useState<Record<string, string>>({});
   const [resultGifUrls, setResultGifUrls] = useState<(string | null)[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState<string>('');
-  const [progress, setProgress] = useState<number>(0);
+  const [processingStatus, setProcessingStatus] = useState('');
+  const [progress, setProgress] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
-  const pollIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [currentError, setCurrentError] = useState<{type: string; title: string; message: string; action?: string} | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleGifSelect = (gifUrl: string) => {
     setSelectedGifs(prev => {
@@ -148,12 +150,17 @@ function App() {
         }
       } catch (error) {
         console.error(`Failed to process GIF ${i + 1}:`, error);
+        // Show error and reset to home page
+        const errorInfo = parseGenericError(error);
+        handleError(errorInfo);
         // Update with empty string to indicate failure
         setResultGifUrls(prev => {
           const newResults = [...prev];
           newResults[i] = '';
           return newResults;
         });
+        // Stop processing on error
+        break;
       }
     }
     
@@ -161,6 +168,17 @@ function App() {
     setIsProcessing(false);
   };
   
+  const handleError = (errorInfo: {type: string; title: string; message: string; action?: string}) => {
+    setCurrentError(errorInfo);
+    setIsProcessing(false);
+  };
+
+  const handleErrorClose = () => {
+    setCurrentError(null);
+    // Also reset to home page when user closes error
+    handleReset();
+  };
+
   const processGifSwap = async (imageData: string, gifUrl: string): Promise<string> => {
     console.log('=== PROCESSING SINGLE GIF SWAP ===');
     console.log('GIF URL:', gifUrl);
@@ -170,26 +188,39 @@ function App() {
       targetGifUrl: gifUrl,
     };
     
-    const response = await fetch(`${API_BASE_URL}/api/swap`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/swap`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      if (!response.ok) {
+        const errorInfo = await parseError(response);
+        handleError(errorInfo);
+        throw new Error(errorInfo.message);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success || !data.predictionId) {
+        const errorInfo = parseGenericError(new Error(data.error || 'Face swap failed'));
+        handleError(errorInfo);
+        throw new Error(errorInfo.message);
+      }
+      
+      // Poll for completion
+      return await pollPredictionStatus(data.predictionId);
+    } catch (error) {
+      // If error hasn't been set yet, parse the generic error
+      if (!currentError) {
+        const errorInfo = parseGenericError(error);
+        handleError(errorInfo);
+      }
+      throw error;
     }
-    
-    const data = await response.json();
-    
-    if (!data.success || !data.predictionId) {
-      throw new Error(data.error || 'Face swap failed');
-    }
-    
-    // Poll for completion
-    return await pollPredictionStatus(data.predictionId);
   };
   
   const pollPredictionStatus = async (predictionId: string): Promise<string> => {
@@ -203,7 +234,10 @@ function App() {
           const response = await fetch(`${API_BASE_URL}/api/swap/status/${predictionId}`);
           
           if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            const errorInfo = await parseError(response);
+            handleError(errorInfo);
+            reject(new Error(errorInfo.message));
+            return;
           }
           
           const data = await response.json();
@@ -214,16 +248,22 @@ function App() {
             resolve(data.output);
           } else if (data.status === 'failed') {
             console.log('FAILED! Rejecting with error:', data.error);
-            reject(new Error(data.error || 'Face swap failed'));
+            const errorInfo = parseGenericError(new Error(data.error || 'Face swap failed'));
+            handleError(errorInfo);
+            reject(new Error(errorInfo.message));
           } else if (data.status === 'canceled') {
             console.log('CANCELED! Rejecting');
-            reject(new Error('Face swap was canceled'));
+            const errorInfo = parseGenericError(new Error('Face swap was canceled'));
+            handleError(errorInfo);
+            reject(new Error(errorInfo.message));
           } else {
             console.log('Still processing, will poll again in 3 seconds. Status:', data.status);
             setTimeout(poll, 3000);
           }
         } catch (error) {
           console.error('Poll error:', error);
+          const errorInfo = parseGenericError(error);
+          handleError(errorInfo);
           reject(error);
         }
       };
@@ -247,6 +287,7 @@ function App() {
     setProcessingStatus('');
     setProgress(0);
     setCompletedCount(0);
+    setCurrentError(null);
   };
 
   return (
@@ -591,9 +632,10 @@ function App() {
             </a>
           </p>
         </div>
-      </footer>
-    </div>
-    </MotionTrackingProvider>
+              </footer>
+      </div>
+      <ErrorDisplay error={currentError} onClose={handleErrorClose} />
+      </MotionTrackingProvider>
   );
 }
 

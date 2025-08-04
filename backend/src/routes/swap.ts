@@ -106,33 +106,63 @@ router.post('/swap', async (req: Request<{}, {}, SwapRequest>, res: Response) =>
   } catch (error) {
     console.error('Face swap error:', error);
     
-    // Enhanced error handling
+    // Enhanced error handling with specific Replicate API error handling
     if (error instanceof Error) {
-      if (error.message.includes('authentication')) {
+      // Check for Replicate API errors by examining the error message or properties
+      if (error.message.includes('402') || error.message.includes('Payment Required') || error.message.includes('Insufficient credit')) {
+        return res.status(402).json({ 
+          error: 'Insufficient credits', 
+          details: 'You have insufficient credits to run this model. Please add credits to your Replicate account at https://replicate.com/account/billing and try again.',
+          errorType: 'payment_required'
+        });
+      }
+      
+      if (error.message.includes('401') || error.message.includes('authentication') || error.message.includes('Unauthorized')) {
         return res.status(401).json({ 
           error: 'Authentication failed', 
-          details: 'Invalid API token' 
+          details: 'Invalid API token. Please check your Replicate API token configuration.',
+          errorType: 'auth_error'
         });
       }
       
-      if (error.message.includes('rate limit')) {
+      if (error.message.includes('429') || error.message.includes('rate limit')) {
         return res.status(429).json({ 
           error: 'Rate limit exceeded', 
-          details: 'Too many requests. Please wait before trying again.' 
+          details: 'Too many requests. Please wait before trying again.',
+          errorType: 'rate_limit'
         });
       }
       
-      if (error.message.includes('model')) {
+      if (error.message.includes('400') || error.message.includes('Bad Request')) {
+        return res.status(400).json({ 
+          error: 'Invalid request', 
+          details: 'The request parameters are invalid. Please check your image data and GIF URL.',
+          errorType: 'bad_request'
+        });
+      }
+      
+      if (error.message.includes('model') || error.message.includes('prediction')) {
         return res.status(500).json({ 
           error: 'Model error', 
-          details: 'The face swap model encountered an error. Please try again.' 
+          details: 'The face swap model encountered an error. Please try again with different images.',
+          errorType: 'model_error'
+        });
+      }
+      
+      if (error.message.includes('network') || error.message.includes('timeout') || error.message.includes('ECONNRESET')) {
+        return res.status(503).json({ 
+          error: 'Network error', 
+          details: 'Network connection failed. Please check your internet connection and try again.',
+          errorType: 'network_error'
         });
       }
     }
     
+    // Generic error response for unknown errors
     res.status(500).json({ 
       error: 'Face swap failed', 
-      details: error instanceof Error ? error.message : 'Unknown error occurred' 
+      details: error instanceof Error ? error.message : 'Unknown error occurred',
+      errorType: 'unknown_error'
     });
   }
 });
@@ -198,9 +228,45 @@ router.get('/swap/status/:predictionId', async (req: Request, res: Response) => 
     console.error('Error type:', error.constructor.name);
     console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
     
+    // Enhanced status check error handling
+    if (error instanceof Error) {
+      if (error.message.includes('402') || error.message.includes('Payment Required') || error.message.includes('Insufficient credit')) {
+        return res.status(402).json({ 
+          error: 'Insufficient credits', 
+          details: 'You have insufficient credits. Please add credits to your Replicate account.',
+          errorType: 'payment_required'
+        });
+      }
+      
+      if (error.message.includes('401') || error.message.includes('authentication') || error.message.includes('Unauthorized')) {
+        return res.status(401).json({ 
+          error: 'Authentication failed', 
+          details: 'Invalid API token for status check.',
+          errorType: 'auth_error'
+        });
+      }
+      
+      if (error.message.includes('404') || error.message.includes('not found')) {
+        return res.status(404).json({ 
+          error: 'Prediction not found', 
+          details: 'The requested prediction could not be found. It may have expired.',
+          errorType: 'not_found'
+        });
+      }
+      
+      if (error.message.includes('429') || error.message.includes('rate limit')) {
+        return res.status(429).json({ 
+          error: 'Rate limit exceeded', 
+          details: 'Too many status requests. Please wait before checking again.',
+          errorType: 'rate_limit'
+        });
+      }
+    }
+    
     res.status(500).json({ 
       error: 'Status check failed', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
+      details: error instanceof Error ? error.message : 'Unknown error',
+      errorType: 'unknown_error'
     });
   }
 });
