@@ -139,9 +139,9 @@ export const PhotoGallery = ({
     // Mobile layout: 2 columns with proper gap (120px GIF size)
     const mobileRow = Math.floor(index / 2);
     const mobileCol = index % 2;
-    // Position from center, accounting for GIF width (120px / 2 = 60px)
-    // For 375px screen: available ~355px, 2×120px = 240px, gap = 115px/2 = ~57px from center
-    const mobileX = mobileCol === 0 ? -130 : 10;  // Left: -70 - 60, Right: 70 - 60
+    // Center the 2-column grid with equal spacing from center
+    // Gap between GIFs: 30px, so each GIF is 75px from center (60px half-width + 15px half-gap)
+    const mobileX = mobileCol === 0 ? -75 : 75;  // Left: -75px, Right: +75px (centered symmetrically)
     const mobileY = mobileRow * 180;  // Reduced vertical spacing to match smaller GIFs
 
     // Tablet layout: 3 columns with 30px gap (180px GIF size)
