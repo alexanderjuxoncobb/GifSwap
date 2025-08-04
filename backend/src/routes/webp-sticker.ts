@@ -48,10 +48,10 @@ async function convertGifToAnimatedWebP(inputPath: string, outputPath: string): 
     console.log('Converting GIF to animated WebP using gif2webp...');
     
     webp.gwebp(inputPath, outputPath, options, (status, error) => {
-      if (status === '100') {
+      if (status == 100 || status === '100') {
         console.log('gif2webp conversion successful');
         resolve();
-      } else if (status === '101') {
+      } else if (status == 101 || status === '101') {
         console.error('gif2webp conversion failed:', error);
         reject(new Error(error || 'gif2webp conversion failed'));
       } else {
