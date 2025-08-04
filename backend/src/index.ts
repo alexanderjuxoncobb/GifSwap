@@ -44,7 +44,13 @@ app.get('/health', (req, res) => {
 
 // Serve frontend index.html for all non-API routes in production
 if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
+  // Use a more specific catch-all pattern that works with Express 5
+  app.use((req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return next();
+    }
+    // Serve the frontend for all other routes
     res.sendFile(join(__dirname, '../../frontend/dist/index.html'));
   });
 }
