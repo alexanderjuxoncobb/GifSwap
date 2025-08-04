@@ -29,6 +29,11 @@ app.use((req, res, next) => {
 
 app.use('/uploads', express.static(join(__dirname, '../uploads')));
 
+// Serve frontend static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(join(__dirname, '../../frontend/dist')));
+}
+
 app.use('/api', uploadRoutes);
 app.use('/api', swapRoutes);
 app.use('/api', optimizeRoutes);
@@ -36,6 +41,13 @@ app.use('/api', optimizeRoutes);
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
 });
+
+// Serve frontend index.html for all non-API routes in production
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(join(__dirname, '../../frontend/dist/index.html'));
+  });
+}
 
 const HOST = process.env.HOST || '0.0.0.0';
 

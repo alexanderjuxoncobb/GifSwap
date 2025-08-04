@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "cd backend && npm install --production=false && npm run build",
-    "start": "cd backend && node dist/index.js",
-    "install": "cd backend && npm install --production=false"
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install --production=false && npm run build",
+    "start": "cd backend && NODE_ENV=production node dist/index.js",
+    "install": "cd frontend && npm install && cd ../backend && npm install --production=false"
   },
   "engines": {
     "node": ">=18.0.0"
