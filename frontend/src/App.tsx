@@ -253,7 +253,7 @@ function App() {
     <MotionTrackingProvider>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
         <motion.div 
-          className="absolute top-4 left-4 z-50"
+          className="absolute top-2 left-2 sm:top-4 sm:left-4 z-50"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
@@ -264,10 +264,10 @@ function App() {
             whileHover={{ scale: 1.1, rotate: 360 }}
             transition={{ duration: 0.3 }}
           >
-            <img src="/logo.svg" alt="Logo" className="w-12 h-12" />
+            <img src="/logo.svg" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12" />
           </motion.button>
         </motion.div>
-        <div className="container mx-auto px-4 py-8 flex-1">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 flex-1 max-w-[1600px]">
           <AnimatePresence mode="wait">
             {appState === 'selectGifs' && (
               <motion.div
@@ -307,16 +307,16 @@ function App() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -50 }}
                 transition={{ duration: 0.5 }}
-                className="max-w-2xl mx-auto"
+                className="w-full max-w-2xl mx-auto px-4 sm:px-0"
               >
                 <motion.div 
-                  className="text-center mb-8"
+                  className="text-center mb-6 sm:mb-8"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <h2 className="text-2xl font-light text-gray-800 mb-4">Choose Upload Mode</h2>
-                  <p className="text-sm text-gray-600 mb-6">
+                  <h2 className="text-xl sm:text-2xl font-light text-gray-800 mb-3 sm:mb-4">Choose Upload Mode</h2>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
                     How would you like to upload faces for your {selectedGifs.length} selected reaction{selectedGifs.length !== 1 ? 's' : ''}?
                   </p>
                   <div className="flex justify-center">
@@ -344,12 +344,12 @@ function App() {
                   </div>
                 </motion.div>
 
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 20, x: 0 }}
+                    animate={{ opacity: 1, y: 0, x: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bg-white p-6 rounded-lg shadow-sm border-2 border-transparent hover:border-gray-200 transition-all cursor-pointer"
+                    className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border-2 border-transparent hover:border-gray-200 transition-all cursor-pointer"
                     onClick={() => {
                       setUploadMode('single');
                       setAppState('upload');
@@ -385,10 +385,10 @@ function App() {
                   </motion.div>
 
                   <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, y: 20, x: 0 }}
+                    animate={{ opacity: 1, y: 0, x: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="bg-white p-6 rounded-lg shadow-sm border-2 border-transparent hover:border-gray-200 transition-all cursor-pointer"
+                    className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border-2 border-transparent hover:border-gray-200 transition-all cursor-pointer"
                     onClick={() => {
                       setUploadMode('individual');
                       setAppState('individualUpload');
@@ -435,15 +435,15 @@ function App() {
                 transition={{ duration: 0.5 }}
               >
                 <motion.div 
-                  className="text-center mb-6"
+                  className="text-center mb-4 sm:mb-6 px-4 sm:px-0"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <p className="text-lg text-gray-600 mb-4">
+                  <p className="text-sm sm:text-base lg:text-lg text-gray-600 mb-3 sm:mb-4">
                     Now upload your photo to swap into the selected reactions:
                   </p>
-                  <p className="text-sm text-gray-500 mb-4">
+                  <p className="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">
                     Selected {selectedGifs.length} reaction{selectedGifs.length !== 1 ? 's' : ''}
                   </p>
                   <div className="flex justify-center">
@@ -503,10 +503,10 @@ function App() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.5 }}
-                className="flex flex-col items-center justify-center min-h-[400px] max-w-md mx-auto"
+                className="flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] w-full max-w-md mx-auto px-4 sm:px-0"
               >
                 <motion.h2 
-                  className="text-2xl font-light text-gray-800 mb-6"
+                  className="text-lg sm:text-xl lg:text-2xl font-light text-gray-800 mb-4 sm:mb-6"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
@@ -514,17 +514,17 @@ function App() {
                   Creating your reactions
                 </motion.h2>
                 <motion.p 
-                  className="text-sm text-gray-600 mb-2"
+                  className="text-xs sm:text-sm text-gray-600 mb-2"
                   animate={{ opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   {processingStatus}
                 </motion.p>
-                <p className="text-xs text-gray-500 mb-6">
+                <p className="text-xs text-gray-500 mb-4 sm:mb-6">
                   Completed: {completedCount} of {selectedGifs.length}
                 </p>
                 <motion.div 
-                  className="w-full bg-gray-200 rounded-full h-2 mb-4 overflow-hidden"
+                  className="w-full bg-gray-200 rounded-full h-2 mb-3 sm:mb-4 overflow-hidden"
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
                   transition={{ delay: 0.4 }}
@@ -537,7 +537,7 @@ function App() {
                   />
                 </motion.div>
                 <motion.p 
-                  className="text-xs text-gray-400 text-center"
+                  className="text-xs text-gray-400 text-center px-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6 }}
@@ -568,9 +568,9 @@ function App() {
           </AnimatePresence>
       </div>
       
-      <footer className="py-4 relative z-10">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-gray-500 font-mono">
+      <footer className="py-3 sm:py-4 relative z-10">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-[1600px]">
+          <p className="text-xs sm:text-sm text-gray-500 font-mono">
             Made by{' '}
             <a 
               href="https://github.com/alexanderjuxoncobb" 

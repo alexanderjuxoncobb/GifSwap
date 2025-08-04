@@ -14,6 +14,7 @@ export const PhotoGallery = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [photoSize, setPhotoSize] = useState(220);
 
   useEffect(() => {
     // First make the container visible with a fade-in
@@ -31,6 +32,23 @@ export const PhotoGallery = ({
       clearTimeout(animationTimer);
     };
   }, [animationDelay]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setPhotoSize(140);
+      } else if (width < 1024) {
+        setPhotoSize(180);
+      } else {
+        setPhotoSize(220);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Animation variants for the container
   const containerVariants = {
@@ -51,21 +69,50 @@ export const PhotoGallery = ({
       y: 0,
       rotate: 0,
       scale: 1,
-      // Keep the same z-index throughout animation
     }),
-    visible: (custom: { x: any; y: any; order: number }) => ({
-      x: custom.x,
-      y: custom.y,
-      rotate: 0, // No rotation
-      scale: 1,
-      transition: {
-        type: "spring" as const,
-        stiffness: 70,
-        damping: 12,
-        mass: 1,
-        delay: custom.order * 0.15, // Explicit delay based on order
-      },
-    }),
+    visible: (custom: { mobileX: any; mobileY: any; tabletX: any; tabletY: any; desktopX: any; desktopY: any; order: number }) => {
+      // Determine position based on screen size
+      if (typeof window !== 'undefined') {
+        const width = window.innerWidth;
+        let x, y;
+        if (width < 640) {
+          x = custom.mobileX;
+          y = custom.mobileY;
+        } else if (width < 1024) {
+          x = custom.tabletX;
+          y = custom.tabletY;
+        } else {
+          x = custom.desktopX;
+          y = custom.desktopY;
+        }
+        return {
+          x,
+          y,
+          rotate: 0,
+          scale: 1,
+          transition: {
+            type: "spring" as const,
+            stiffness: 70,
+            damping: 12,
+            mass: 1,
+            delay: custom.order * 0.15,
+          },
+        };
+      }
+      return {
+        x: custom.desktopX,
+        y: custom.desktopY,
+        rotate: 0,
+        scale: 1,
+        transition: {
+          type: "spring" as const,
+          stiffness: 70,
+          damping: 12,
+          mass: 1,
+          delay: custom.order * 0.15,
+        },
+      };
+    },
   };
 
   // All memes from the original collection arranged in a grid layout
@@ -87,20 +134,36 @@ export const PhotoGallery = ({
     "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjV3azJ3YzZyM282YXc5eXo5eDR2NXJheW44dHdwMzViaGFodG1payZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/CycIvRahkUp0Y/giphy.gif",
   ];
 
-  // Generate consistent grid positions for all memes
+  // Generate responsive grid positions for all memes
   const photos = allMemes.map((src, index) => {
-    const row = Math.floor(index / 5);
-    const col = index % 5;
-    // Create a consistent grid layout
-    const baseX = (col - 2) * 260; // Center around 0, consistent spacing
-    const baseY = row * 240; // Rows with more vertical spacing
+    // Mobile layout: 2 columns
+    const mobileRow = Math.floor(index / 2);
+    const mobileCol = index % 2;
+    const mobileX = mobileCol === 0 ? -70 : 70;
+    const mobileY = mobileRow * 180;
+
+    // Tablet layout: 3 columns
+    const tabletRow = Math.floor(index / 3);
+    const tabletCol = index % 3;
+    const tabletX = (tabletCol - 1) * 200;
+    const tabletY = tabletRow * 220;
+
+    // Desktop layout: 5 columns (original)
+    const desktopRow = Math.floor(index / 5);
+    const desktopCol = index % 5;
+    const desktopX = (desktopCol - 2) * 260;
+    const desktopY = desktopRow * 240;
 
     return {
       id: index + 1,
       order: index,
-      x: `${baseX}px`,
-      y: `${baseY}px`,
-      zIndex: 50 - index, // Descending z-index
+      mobileX: `${mobileX}px`,
+      mobileY: `${mobileY}px`,
+      tabletX: `${tabletX}px`,
+      tabletY: `${tabletY}px`,
+      desktopX: `${desktopX}px`,
+      desktopY: `${desktopY}px`,
+      zIndex: 50 - index,
       direction: (index % 2 === 0 ? "left" : "right") as Direction,
       src: src,
     };
@@ -113,14 +176,14 @@ export const PhotoGallery = ({
   };
 
   return (
-    <div className="mt-8 pb-8 relative">
-      <h3 className="z-20 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-center text-4xl text-transparent dark:bg-gradient-to-r dark:from-slate-100 dark:via-slate-200 dark:to-slate-100 dark:bg-clip-text md:text-6xl font-bold mb-6">
+    <div className="mt-4 sm:mt-6 lg:mt-8 pb-4 sm:pb-6 lg:pb-8 relative">
+      <h3 className="z-20 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-center text-2xl sm:text-3xl lg:text-4xl text-transparent dark:bg-gradient-to-r dark:from-slate-100 dark:via-slate-200 dark:to-slate-100 dark:bg-clip-text md:text-5xl xl:text-6xl font-bold mb-3 sm:mb-4 lg:mb-6">
         GifSwap
       </h3>
-      <p className="lg:text-md mb-8 text-center text-xs font-light uppercase tracking-widest text-slate-600 dark:text-slate-400">
+      <p className="text-xs sm:text-sm lg:text-md mb-4 sm:mb-6 lg:mb-8 text-center font-light uppercase tracking-widest text-slate-600 dark:text-slate-400">
         Choose from below (can select multiple)
       </p>
-      <div className="relative mb-8 h-[720px] w-full items-center justify-center flex z-0">
+      <div className="relative mb-4 sm:mb-6 lg:mb-8 min-h-[600px] sm:min-h-[700px] lg:h-[720px] w-full items-start sm:items-center justify-start sm:justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible">
         <motion.div
           className="relative mx-auto flex w-full max-w-7xl justify-center"
           initial={{ opacity: 0 }}
@@ -133,7 +196,7 @@ export const PhotoGallery = ({
             initial="hidden"
             animate={isLoaded ? "visible" : "hidden"}
           >
-            <div className="relative h-[720px] w-[1300px]">
+            <div className="relative h-full sm:h-[720px] w-full sm:w-[900px] lg:w-[1300px]">
               {/* Render photos in reverse order so that higher z-index photos are rendered later in the DOM */}
               {[...photos].reverse().map((photo) => (
                 <motion.div
@@ -142,14 +205,18 @@ export const PhotoGallery = ({
                   style={{ zIndex: Math.min(photo.zIndex, 10) }}
                   variants={photoVariants}
                   custom={{
-                    x: photo.x,
-                    y: photo.y,
+                    mobileX: photo.mobileX,
+                    mobileY: photo.mobileY,
+                    tabletX: photo.tabletX,
+                    tabletY: photo.tabletY,
+                    desktopX: photo.desktopX,
+                    desktopY: photo.desktopY,
                     order: photo.order,
                   }}
                 >
                   <Photo
-                    width={220}
-                    height={220}
+                    width={photoSize}
+                    height={photoSize}
                     src={photo.src}
                     alt="Meme"
                     direction={photo.direction}

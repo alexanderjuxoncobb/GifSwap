@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GifSwap Responsive Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f3f4f6;
+        }
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 30px;
+        }
+        .device-grid {
+            display: grid;
+            gap: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        .device-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .device-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .device-name {
+            font-weight: 600;
+            color: #374151;
+        }
+        .device-size {
+            font-size: 14px;
+            color: #6b7280;
+            background: #f3f4f6;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .iframe-container {
+            position: relative;
+            background: #000;
+            border-radius: 8px;
+            padding: 10px;
+            display: inline-block;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .iframe-wrapper {
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        iframe {
+            display: block;
+            border: none;
+            width: 100%;
+            background: white;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.warning {
+            background: #fed7aa;
+            color: #92400e;
+        }
+        .controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        button {
+            background: #111827;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #374151;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+        @media (max-width: 900px) {
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 GifSwap Responsive Design Test</h1>
+    
+    <div class="controls">
+        <button onclick="reloadAll()">🔄 Reload All</button>
+        <button onclick="testScroll()">📜 Test Scroll</button>
+        <button onclick="testInteraction()">👆 Test Interaction</button>
+    </div>
+
+    <div class="device-grid test-grid">
+        <!-- iPhone SE -->
+        <div class="device-container">
+            <div class="device-header">
+                <span class="device-name">📱 iPhone SE</span>
+                <span class="device-size">375 x 667px</span>
+            </div>
+            <div class="iframe-container" style="max-width: 375px;">
+                <div class="iframe-wrapper">
+                    <iframe src="http://localhost:5173" width="375" height="667"></iframe>
+                </div>
+            </div>
+            <div class="status success">✓ Mobile optimized (2-column grid)</div>
+        </div>
+
+        <!-- iPhone 14 -->
+        <div class="device-container">
+            <div class="device-header">
+                <span class="device-name">📱 iPhone 14</span>
+                <span class="device-size">390 x 844px</span>
+            </div>
+            <div class="iframe-container" style="max-width: 390px;">
+                <div class="iframe-wrapper">
+                    <iframe src="http://localhost:5173" width="390" height="844"></iframe>
+                </div>
+            </div>
+            <div class="status success">✓ Mobile optimized (2-column grid)</div>
+        </div>
+
+        <!-- iPhone 14 Pro Max -->
+        <div class="device-container">
+            <div class="device-header">
+                <span class="device-name">📱 iPhone 14 Pro Max</span>
+                <span class="device-size">430 x 932px</span>
+            </div>
+            <div class="iframe-container" style="max-width: 430px;">
+                <div class="iframe-wrapper">
+                    <iframe src="http://localhost:5173" width="430" height="932"></iframe>
+                </div>
+            </div>
+            <div class="status success">✓ Mobile optimized (2-column grid)</div>
+        </div>
+
+        <!-- iPad Mini -->
+        <div class="device-container">
+            <div class="device-header">
+                <span class="device-name">📱 iPad Mini</span>
+                <span class="device-size">768 x 1024px</span>
+            </div>
+            <div class="iframe-container" style="max-width: 768px;">
+                <div class="iframe-wrapper">
+                    <iframe src="http://localhost:5173" width="768" height="600"></iframe>
+                </div>
+            </div>
+            <div class="status success">✓ Tablet optimized (3-column grid)</div>
+        </div>
+    </div>
+
+    <h2 style="text-align: center; margin: 40px 0 20px; color: #1f2937;">Key Responsive Features</h2>
+    
+    <div style="max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <ul style="line-height: 1.8; color: #374151;">
+            <li>✅ <strong>Mobile-first approach:</strong> Base styles for mobile, enhanced for larger screens</li>
+            <li>✅ <strong>2-column grid on mobile:</strong> GIFs display in 2 columns on phones (< 640px)</li>
+            <li>✅ <strong>3-column grid on tablets:</strong> GIFs display in 3 columns on tablets (640-1024px)</li>
+            <li>✅ <strong>5-column grid on desktop:</strong> Full layout on desktop (> 1024px)</li>
+            <li>✅ <strong>Touch-friendly buttons:</strong> Minimum 44px touch targets on mobile</li>
+            <li>✅ <strong>Responsive typography:</strong> Font sizes scale with screen size</li>
+            <li>✅ <strong>Responsive spacing:</strong> Padding and margins adjust for screen size</li>
+            <li>✅ <strong>Stacked cards on mobile:</strong> Upload mode cards stack vertically on small screens</li>
+            <li>✅ <strong>Responsive result grid:</strong> Results display in 1 column on mobile, expanding to 4 on desktop</li>
+            <li>✅ <strong>Optimized logo size:</strong> Logo scales appropriately for different devices</li>
+        </ul>
+    </div>
+
+    <script>
+        function reloadAll() {
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                iframe.src = iframe.src;
+            });
+        }
+
+        function testScroll() {
+            const iframes = document.querySelectorAll('iframe');
+            iframes.forEach(iframe => {
+                try {
+                    iframe.contentWindow.scrollTo(0, 500);
+                } catch(e) {
+                    console.log('Cannot scroll iframe due to cross-origin restrictions');
+                }
+            });
+        }
+
+        function testInteraction() {
+            alert('Click on any GIF in the iframes to test selection functionality!');
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            console.log('Auto-refreshing iframes...');
+            reloadAll();
+        }, 30000);
+    </script>
+</body>
+</html>

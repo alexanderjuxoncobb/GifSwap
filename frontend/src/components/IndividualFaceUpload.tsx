@@ -140,13 +140,13 @@ export default function IndividualFaceUpload({
       transition={springConfig}
     >
       <motion.div 
-        className="text-center mb-6"
+        className="text-center mb-4 sm:mb-6 px-4 sm:px-0"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <h2 className="text-2xl font-light text-gray-800 mb-2">Upload Individual Faces</h2>
-        <p className="text-sm text-gray-600 mb-4">
+        <h2 className="text-xl sm:text-2xl font-light text-gray-800 mb-2">Upload Individual Faces</h2>
+        <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
           Upload a face for each selected GIF ({Object.keys(faceMapping).length}/{selectedGifs.length} uploaded)
         </p>
         <div className="flex justify-center">
@@ -174,7 +174,7 @@ export default function IndividualFaceUpload({
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 max-w-6xl mx-auto px-4 sm:px-6">
         <AnimatePresence>
           {selectedGifs.map((gifUrl, index) => {
             const state = uploadStates[gifUrl];
@@ -220,9 +220,9 @@ export default function IndividualFaceUpload({
                     )}
                   </div>
                   
-                  <div className="p-3">
+                  <div className="p-2 sm:p-3">
                     <motion.div
-                      className={`border-2 border-dashed rounded-lg p-4 text-center transition-all ${
+                      className={`border-2 border-dashed rounded-lg p-3 sm:p-4 text-center transition-all ${
                         state.isDragging ? 'border-black bg-gray-100' : 'border-gray-300 bg-white'
                       }`}
                       onDragOver={(e) => handleDragOver(e, gifUrl)}
@@ -330,7 +330,7 @@ export default function IndividualFaceUpload({
       </div>
 
       <motion.div 
-        className="text-center mt-8"
+        className="text-center mt-6 sm:mt-8 px-4 sm:px-0"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: allFacesUploaded ? 1 : 0.5, y: 0 }}
         transition={{ delay: 0.3 }}

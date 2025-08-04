@@ -81,13 +81,13 @@ export default function MotionImageUpload({ onImageUpload }: MotionImageUploadPr
 
   return (
     <motion.div 
-      className="max-w-md mx-auto"
+      className="w-full max-w-md mx-auto px-4 sm:px-0"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={springConfig}
     >
       <motion.div
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+        className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all ${
           isDragging ? 'border-black bg-gray-100' : 'border-gray-300 bg-white'
         }`}
         onDragOver={handleDragOver}
@@ -149,7 +149,7 @@ export default function MotionImageUpload({ onImageUpload }: MotionImageUploadPr
               exit={{ opacity: 0 }}
             >
               <motion.svg
-                className="w-16 h-16 mx-auto text-gray-400"
+                className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -165,10 +165,10 @@ export default function MotionImageUpload({ onImageUpload }: MotionImageUploadPr
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 />
               </motion.svg>
-              <p className="mt-4 text-gray-600">
+              <p className="mt-4 text-sm sm:text-base text-gray-600">
                 Drag and drop your photo here, or click to browse
               </p>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-xs sm:text-sm text-gray-500">
                 JPG, PNG, GIF up to 10MB
               </p>
               <input
@@ -180,7 +180,7 @@ export default function MotionImageUpload({ onImageUpload }: MotionImageUploadPr
               />
               <motion.button
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-4 bg-black hover:bg-gray-800 text-white font-light py-2 px-6 rounded-sm transition-colors cursor-pointer"
+                className="mt-4 bg-black hover:bg-gray-800 text-white font-light py-2 px-4 sm:px-6 text-sm sm:text-base rounded-sm transition-colors cursor-pointer"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >

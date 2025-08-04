@@ -88,13 +88,13 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
 
   return (
     <motion.div 
-      className="w-full max-w-7xl mx-auto text-center px-4"
+      className="w-full max-w-7xl mx-auto text-center px-4 sm:px-6 lg:px-8"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
       <motion.h2 
-        className="text-2xl font-light text-gray-800 mb-8"
+        className="text-xl sm:text-2xl font-light text-gray-800 mb-4 sm:mb-6 lg:mb-8"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
@@ -107,12 +107,12 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
       
       {isProcessing && processingStatus && (
         <motion.div 
-          className="mb-4 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg max-w-2xl mx-auto"
+          className="mb-3 sm:mb-4 p-3 sm:p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg max-w-2xl mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <p className="text-sm">
+          <p className="text-xs sm:text-sm">
             <motion.span
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 2, repeat: Infinity }}
@@ -125,19 +125,19 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
       
       {failedCount > 0 && (
         <motion.div 
-          className="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg max-w-2xl mx-auto"
+          className="mb-4 sm:mb-6 p-3 sm:p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg max-w-2xl mx-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <p className="text-sm">
+          <p className="text-xs sm:text-sm">
             {failedCount} out of {resultGifUrls.length} face swaps failed to process. 
             This can happen if the GIF doesn't have a clear face.
           </p>
         </motion.div>
       )}
       
-      <div className="flex flex-wrap justify-center gap-6 mb-8 w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 w-full">
         {resultGifUrls.map((gifUrl, index) => (
           <motion.div 
             key={index} 
@@ -149,7 +149,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
           >
             {gifUrl === null ? (
               // Loading state
-              <div className="w-64 h-64 flex flex-col items-center justify-center bg-gray-50">
+              <div className="w-full aspect-square flex flex-col items-center justify-center bg-gray-50">
                 <motion.div 
                   className="w-16 h-16 mb-4"
                   animate={{ rotate: 360 }}
@@ -160,13 +160,13 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                 </motion.div>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500">
                   Processing GIF #{index + 1}...
                 </p>
               </div>
             ) : gifUrl && gifUrl.trim() !== '' ? (
               <>
-                <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+                <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
                   <div className="absolute top-2 left-2 z-10 bg-black text-white text-xs font-medium px-2 py-1 rounded-full shadow-md">
                     #{index + 1}
                   </div>
@@ -183,7 +183,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                     />
                   </motion.div>
                 </div>
-                <div className="p-4 bg-white border-t border-gray-100">
+                <div className="p-3 sm:p-4 bg-white border-t border-gray-100">
                   <MotionButton
                     onClick={() => handleDownload(gifUrl, index)}
                     variant="primary"
@@ -208,7 +208,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                 </div>
               </>
             ) : (
-              <div className="w-64 h-64 flex flex-col items-center justify-center bg-red-50 relative">
+              <div className="w-full aspect-square flex flex-col items-center justify-center bg-red-50 relative">
                 <div className="absolute top-2 left-2 z-10 bg-red-600 text-white text-xs font-medium px-2 py-1 rounded-full shadow-md">
                   #{index + 1}
                 </div>
@@ -217,7 +217,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                   </svg>
                 </div>
-                <p className="text-sm text-red-600 font-medium">
+                <p className="text-xs sm:text-sm text-red-600 font-medium">
                   Failed to process
                 </p>
               </div>
@@ -227,7 +227,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
       </div>
 
       <motion.div 
-        className="flex flex-col sm:flex-row gap-4 justify-center"
+        className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}

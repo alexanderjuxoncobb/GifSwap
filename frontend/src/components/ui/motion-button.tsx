@@ -16,9 +16,9 @@ export const MotionButton = forwardRef<HTMLButtonElement, MotionButtonProps>(
     };
 
     const sizes = {
-      sm: 'py-1 px-3 text-sm',
-      md: 'py-2 px-4 text-sm',
-      lg: 'py-3 px-6 text-base',
+      sm: 'py-2 px-3 text-xs sm:py-1 sm:text-sm min-h-[44px] sm:min-h-0',
+      md: 'py-2.5 px-4 text-sm sm:py-2 min-h-[44px] sm:min-h-0',
+      lg: 'py-3 px-5 text-sm sm:px-6 sm:text-base min-h-[44px]',
     };
 
     return (
