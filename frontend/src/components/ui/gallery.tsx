@@ -250,7 +250,7 @@ export const PhotoGallery = ({
       </p>
       <div 
         ref={galleryContainerRef}
-        className="relative mb-4 sm:mb-6 lg:mb-8 min-h-[600px] sm:min-h-[700px] lg:min-h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible"
+        className="relative mb-4 sm:mb-8 lg:mb-8 min-h-[600px] sm:min-h-[1000px] lg:min-h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible"
       >
         <motion.div
           className="relative mx-auto flex w-full max-w-7xl justify-center"
@@ -264,7 +264,7 @@ export const PhotoGallery = ({
             initial="hidden"
             animate={isLoaded ? "visible" : "hidden"}
           >
-            <div className="relative h-[600px] sm:h-[720px] w-full sm:w-[900px] lg:w-[1300px] mb-20">
+            <div className="relative h-[600px] sm:h-[1000px] lg:h-[720px] w-full sm:w-[900px] lg:w-[1300px] mb-20">
               {/* Render photos in reverse order so that higher z-index photos are rendered later in the DOM */}
               {[...photos].reverse().map((photo) => (
                 <motion.div
