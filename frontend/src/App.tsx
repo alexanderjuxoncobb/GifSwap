@@ -291,7 +291,7 @@ function App() {
                   selectedMemes={selectedGifs}
                 />
                 <motion.div 
-                  className="text-center mt-6 sm:mt-8 lg:mt-10 relative z-50 pb-8"
+                  className="text-center mt-2 sm:mt-6 lg:mt-8 relative z-50 pb-8"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: selectedGifs.length > 0 ? 1 : 0, y: 0 }}
                   transition={{ delay: 0.2 }}
