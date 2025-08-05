@@ -16,7 +16,7 @@ export const PhotoGallery = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [photoSize, setPhotoSize] = useState(220);
   const galleryContainerRef = useRef<HTMLDivElement>(null);
-  const scrollPositionRef = useRef<number>(0);
+  const isUpdatingSelection = useRef(false);
 
   useEffect(() => {
     // First make the container visible with a fade-in
@@ -198,26 +198,46 @@ export const PhotoGallery = ({
   });
 
   const handleMemeClick = (memeUrl: string) => {
-    // Save current scroll position before state update
-    if (galleryContainerRef.current) {
-      scrollPositionRef.current = galleryContainerRef.current.scrollTop;
-    }
+    // Set flag to prevent scroll restoration side effects
+    isUpdatingSelection.current = true;
+    
+    // Save current scroll positions
+    const containerScroll = galleryContainerRef.current?.scrollTop || 0;
+    const windowScroll = window.pageYOffset || document.documentElement.scrollTop;
     
     if (onMemeSelect) {
       onMemeSelect(memeUrl);
     }
+    
+    // Restore scroll positions immediately
+    requestAnimationFrame(() => {
+      if (galleryContainerRef.current) {
+        galleryContainerRef.current.scrollTop = containerScroll;
+      }
+      window.scrollTo(0, windowScroll);
+      
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isUpdatingSelection.current = false;
+      }, 100);
+    });
   };
 
-  // Restore scroll position after selectedMemes changes
+  // Prevent scroll jump on selection change
   useEffect(() => {
-    if (galleryContainerRef.current && scrollPositionRef.current > 0) {
-      // Use requestAnimationFrame to ensure DOM has updated
-      requestAnimationFrame(() => {
-        if (galleryContainerRef.current) {
-          galleryContainerRef.current.scrollTop = scrollPositionRef.current;
-        }
-      });
+    if (isUpdatingSelection.current) {
+      return; // Skip if we're in the middle of updating selection
     }
+    
+    // This effect should only run on external updates, not our own clicks
+    const handleScroll = (e: Event) => {
+      if (isUpdatingSelection.current) {
+        e.preventDefault();
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: false });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [selectedMemes]);
 
   return (
@@ -268,7 +288,11 @@ export const PhotoGallery = ({
                     src={photo.src}
                     alt="Meme"
                     direction={photo.direction}
-                    onClick={() => handleMemeClick(photo.src)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleMemeClick(photo.src);
+                    }}
                     isSelected={selectedMemes.includes(photo.src)}
                   />
                 </motion.div>
@@ -316,7 +340,7 @@ export const Photo = ({
   direction?: Direction;
   width: number;
   height: number;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   isSelected?: boolean;
 }) => {
   const [rotation, setRotation] = useState<number>(0);
@@ -382,7 +406,11 @@ export const Photo = ({
       className={cn(className, "relative mx-auto shrink-0 cursor-pointer")}
       onMouseMove={handleMouse}
       onMouseLeave={resetMouse}
-      onClick={onClick}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onClick) onClick(e);
+      }}
       draggable={false}
     >
       <div className="relative h-full w-full overflow-hidden rounded-3xl shadow-sm">
