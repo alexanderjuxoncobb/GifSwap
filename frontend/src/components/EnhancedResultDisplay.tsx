@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MotionButton } from './ui/motion-button';
 import { API_BASE_URL } from '../config';
@@ -12,10 +13,12 @@ interface ResultDisplayProps {
 }
 
 export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProcessing, processingStatus }: ResultDisplayProps) {
+  // Detect if the user is on a mobile device
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const [hasSeenInstructions, setHasSeenInstructions] = useState(false);
   const handleDownload = async (gifUrl: string, index: number) => {
     try {
-      const endpoint = `${API_BASE_URL}/api/optimize-gif-original`;
-      const filename = `reaction-${index + 1}.gif`;
+      const endpoint = `${API_BASE_URL}/api/optimize-gif`;
       const mimeType = 'image/gif';
       
       const response = await fetch(endpoint, {
@@ -30,24 +33,26 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
         throw new Error('Failed to process file');
       }
       
-      const data = await response.json();
-      const content = data.optimizedGif;
+      const { optimizedGif, format } = await response.json();
       
       // Convert base64 to blob
-      const base64Data = content.split(',')[1];
+      const base64Data = optimizedGif.split(',')[1];
       const binaryString = atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
       
-      const blob = new Blob([bytes], { type: mimeType });
+      // Use the format from response
+      const actualMimeType = format === 'mp4' ? 'video/mp4' : mimeType;
+      const actualExtension = format === 'mp4' ? 'mp4' : 'gif';
+      const blob = new Blob([bytes], { type: actualMimeType });
       
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filename;
+      a.download = `reaction-${index + 1}.${actualExtension}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -67,6 +72,103 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
         document.body.removeChild(a);
       } catch (fallbackError) {
         alert('Failed to download. Please make sure the backend server is running and try again.');
+      }
+    }
+  };
+
+  const handleShare = async (gifUrl: string, index: number) => {
+    // Show instructions on first click
+    if (!hasSeenInstructions && isMobile) {
+      alert('To share your GIF on WhatsApp:\n\n1. Click OK\n2. Click Share again\n3. Choose WhatsApp from the share menu\n4. Select a friend or group\n5. Send the GIF\n\nOnce sent, you can copy/save the GIF directly from WhatsApp!');
+      setHasSeenInstructions(true);
+      return;
+    }
+    
+    try {
+      // Always try file share first to send the actual GIF
+      const endpoint = `${API_BASE_URL}/api/optimize-gif`;
+      const mimeType = 'image/gif';
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ gifUrl }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to process file');
+      }
+      
+      const { optimizedGif, format } = await response.json();
+      
+      // Convert base64 to blob
+      const base64Data = optimizedGif.split(',')[1];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Use the format from response
+      const actualMimeType = format === 'mp4' ? 'video/mp4' : mimeType;
+      const actualExtension = format === 'mp4' ? 'mp4' : 'gif';
+      const blob = new Blob([bytes], { type: actualMimeType });
+      
+      // Try file sharing if available
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], `reaction-${index + 1}.${actualExtension}`, { 
+          type: actualMimeType,
+          lastModified: new Date().getTime()
+        });
+        
+        const shareData = {
+          files: [file],
+          title: 'Check out my reaction!',
+          text: 'Made with https://gifswap-production.up.railway.app/'
+        };
+        
+        // Check if the browser can share files
+        if (navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData);
+            return; // Successfully shared
+          } catch (shareError) {
+            // If user cancelled, don't show error
+            if (shareError instanceof Error && shareError.name === 'AbortError') {
+              return;
+            }
+            console.log('File share failed:', shareError);
+          }
+        }
+      }
+      
+      // Fallback to download
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reaction-${index + 1}.${actualExtension}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+    } catch (error) {
+      console.error('Share/Download error:', error);
+      
+      // Final fallback: direct download from server
+      try {
+        const a = document.createElement('a');
+        a.href = `${API_BASE_URL}/api/download-gif?url=${encodeURIComponent(gifUrl)}`;
+        a.download = `reaction-${index + 1}.gif`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch (downloadError) {
+        // Ultimate fallback: open in new tab
+        window.open(gifUrl, '_blank');
+        alert('Unable to share directly. The image has been opened in a new tab - you can long press to save or share it.');
       }
     }
   };
@@ -166,45 +268,68 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
               </div>
             ) : gifUrl && gifUrl.trim() !== '' ? (
               <>
-                <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
+                <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 flex items-center justify-center">
                   <div className="absolute top-2 left-2 z-10 bg-black text-white text-xs font-medium px-2 py-1 rounded-full shadow-md">
                     #{index + 1}
                   </div>
                   <motion.div 
-                    className="relative"
+                    className="relative flex items-center justify-center w-full"
                     whileHover={{ scale: 1.05 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     <img
                       src={gifUrl}
                       alt={`Face swap result ${index + 1}`}
-                      className="w-auto h-auto max-w-full rounded-lg shadow-md"
-                      style={{ maxHeight: '600px', minHeight: '200px' }}
+                      className="block max-w-full max-h-[600px] min-h-[200px] w-full h-full object-contain rounded-lg shadow-md"
                     />
                   </motion.div>
                 </div>
                 <div className="p-3 sm:p-4 bg-white border-t border-gray-100">
-                  <MotionButton
-                    onClick={() => handleDownload(gifUrl, index)}
-                    variant="primary"
-                    size="md"
-                    className="w-full flex items-center justify-center"
-                  >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                    </svg>
-                    Download GIF
-                  </MotionButton>
+                  {isMobile ? (
+                    <MotionButton
+                      onClick={() => handleShare(gifUrl, index)}
+                      variant="primary"
+                      size="md"
+                      className="w-full flex items-center justify-center"
+                    >
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                        />
+                      </svg>
+                      Share GIF
+                    </MotionButton>
+                  ) : (
+                    <MotionButton
+                      onClick={() => handleDownload(gifUrl, index)}
+                      variant="primary"
+                      size="md"
+                      className="w-full flex items-center justify-center"
+                    >
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      Download GIF
+                    </MotionButton>
+                  )}
                 </div>
               </>
             ) : (
@@ -232,7 +357,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        {validResults.length > 1 && (
+        {validResults.length > 1 && !isMobile && (
           <MotionButton
             onClick={handleDownloadAll}
             variant="primary"

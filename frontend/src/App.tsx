@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MotionImageUpload from './components/MotionImageUpload';
 import IndividualFaceUpload from './components/IndividualFaceUpload';
@@ -31,6 +31,10 @@ function App() {
       if (prev.includes(gifUrl)) {
         return prev.filter(url => url !== gifUrl);
       } else {
+        if (prev.length >= 5) {
+          alert('You can select a maximum of 5 reactions. Please deselect one to add another.');
+          return prev;
+        }
         return [...prev, gifUrl];
       }
     });
@@ -290,6 +294,11 @@ function App() {
     setCurrentError(null);
   };
 
+  // Scroll to top when app state changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [appState]);
+
   return (
     <MotionTrackingProvider>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
@@ -323,7 +332,7 @@ function App() {
                   selectedMemes={selectedGifs}
                 />
                 <motion.div 
-                  className="text-center mt-8 relative z-10"
+                  className="text-center mt-2 sm:mt-6 lg:mt-8 relative z-50 pb-8"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: selectedGifs.length > 0 ? 1 : 0, y: 0 }}
                   transition={{ delay: 0.2 }}
@@ -476,7 +485,7 @@ function App() {
                 transition={{ duration: 0.5 }}
               >
                 <motion.div 
-                  className="text-center mb-4 sm:mb-6 px-4 sm:px-0"
+                  className="text-center mb-4 sm:mb-6 px-4 sm:px-0 mt-16 sm:mt-16 lg:mt-0"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}

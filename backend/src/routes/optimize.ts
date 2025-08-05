@@ -30,7 +30,97 @@ function isGif(buffer: Buffer): boolean {
 
 
 
-// Download optimized GIF
+// Main optimize endpoint with improved quality preservation
+router.post('/optimize-gif', async (req: Request<{}, {}, OptimizeRequest>, res: Response): Promise<Response | void> => {
+  try {
+    const { gifUrl } = req.body;
+    
+    if (!gifUrl) {
+      return res.status(400).json({ error: 'GIF URL is required' });
+    }
+    
+    console.log('Optimizing GIF:', gifUrl);
+    console.log('Request from:', req.headers['user-agent']);
+    
+    // Download the GIF
+    const gifBuffer = await downloadFile(gifUrl);
+    console.log('Downloaded GIF, size:', gifBuffer.length, 'bytes (', (gifBuffer.length / 1024 / 1024).toFixed(2), 'MB)');
+    
+    // Verify it's actually a GIF
+    if (!isGif(gifBuffer)) {
+      console.log('File is not a GIF format');
+    }
+    
+    try {
+      let optimizedBuffer: Buffer;
+      
+      // WhatsApp's limit is 16MB, but we'll use different thresholds for quality
+      const size = gifBuffer.length;
+      const sizeMB = size / 1024 / 1024;
+      
+      if (sizeMB > 15) {
+        // Only resize if absolutely necessary for WhatsApp
+        console.log('GIF exceeds 15MB, must resize for WhatsApp...');
+        
+        const metadata = await sharp(gifBuffer).metadata();
+        const scaleFactor = Math.sqrt(14 * 1024 * 1024 / size); // Target 14MB
+        const newWidth = Math.floor((metadata.width || 500) * scaleFactor);
+        
+        optimizedBuffer = await sharp(gifBuffer, { animated: true })
+          .resize(newWidth, undefined, {
+            withoutEnlargement: true,
+            fit: 'inside'
+          })
+          .gif({
+            colours: 200, // Increased from 128 for better quality
+            dither: 1.0
+          })
+          .toBuffer();
+          
+      } else {
+        // For GIFs under 15MB, return original without any quality loss
+        console.log('GIF is', sizeMB.toFixed(2), 'MB, preserving original quality');
+        optimizedBuffer = gifBuffer;
+      }
+      
+      console.log('Final GIF size:', optimizedBuffer.length, 'bytes (', (optimizedBuffer.length / 1024 / 1024).toFixed(2), 'MB)');
+      
+      const base64Data = `data:image/gif;base64,${optimizedBuffer.toString('base64')}`;
+      
+      res.json({
+        success: true,
+        optimizedGif: base64Data,
+        format: 'gif',
+        originalSize: gifBuffer.length,
+        optimizedSize: optimizedBuffer.length
+      });
+      
+    } catch (sharpError) {
+      console.error('Sharp processing error:', sharpError);
+      
+      // If Sharp fails, return original
+      const base64Data = `data:image/gif;base64,${gifBuffer.toString('base64')}`;
+      
+      res.json({
+        success: true,
+        optimizedGif: base64Data,
+        format: 'gif',
+        originalSize: gifBuffer.length,
+        optimizedSize: gifBuffer.length,
+        warning: 'Returned original GIF'
+      });
+    }
+    
+  } catch (error) {
+    console.error('GIF optimization error:', error);
+    res.status(500).json({ 
+      error: 'Failed to optimize GIF', 
+      details: error instanceof Error ? error.message : 'Unknown error' 
+    });
+  }
+});
+
+// Keep the original endpoint for backward compatibility
 router.post('/optimize-gif-original', async (req: Request<{}, {}, OptimizeRequest>, res: Response): Promise<Response | void> => {
   try {
     const { gifUrl } = req.body;

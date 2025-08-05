@@ -16,7 +16,7 @@ export const PhotoGallery = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [photoSize, setPhotoSize] = useState(220);
   const galleryContainerRef = useRef<HTMLDivElement>(null);
-  const scrollPositionRef = useRef<number>(0);
+  const isUpdatingSelection = useRef(false);
 
   useEffect(() => {
     // First make the container visible with a fade-in
@@ -139,8 +139,24 @@ export const PhotoGallery = ({
     "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjV3azJ3YzZyM282YXc5eXo5eDR2NXJheW44dHdwMzViaGFodG1payZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/CycIvRahkUp0Y/giphy.gif",
   ];
 
-  // Generate responsive grid positions for all memes
-  const photos = allMemes.map((src, index) => {
+  // Check if we're in 2-column mode (mobile)
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Use only 14 GIFs for 2-column layout, all 15 for other layouts
+  const displayMemes = isMobile ? allMemes.slice(0, 14) : allMemes;
+  
+  // Generate responsive grid positions for display memes
+  const photos = displayMemes.map((src, index) => {
     // Mobile layout: 2 columns with dynamic sizing
     const mobileRow = Math.floor(index / 2);
     const mobileCol = index % 2;
@@ -155,15 +171,15 @@ export const PhotoGallery = ({
     // Tablet layout: 3 columns with 30px gap (180px GIF size)
     const tabletRow = Math.floor(index / 3);
     const tabletCol = index % 3;
-    // Position from center, accounting for GIF width (180px / 2 = 90px)
-    const tabletX = (tabletCol - 1) * 210 - 90;  // Subtract half width
+    // Position from center: center column at 0, left at -210px, right at +210px
+    const tabletX = (tabletCol - 1) * 210;
     const tabletY = tabletRow * 240;
 
     // Desktop layout: 5 columns with 60px gap (220px GIF size)
     const desktopRow = Math.floor(index / 5);
     const desktopCol = index % 5;
-    // Position from center, accounting for GIF width (220px / 2 = 110px)
-    const desktopX = (desktopCol - 2) * 280 - 110;  // Subtract half width
+    // Position from center: center column at 0, spread evenly left and right
+    const desktopX = (desktopCol - 2) * 280;
     const desktopY = desktopRow * 260;
 
     return {
@@ -182,26 +198,46 @@ export const PhotoGallery = ({
   });
 
   const handleMemeClick = (memeUrl: string) => {
-    // Save current scroll position before state update
-    if (galleryContainerRef.current) {
-      scrollPositionRef.current = galleryContainerRef.current.scrollTop;
-    }
+    // Set flag to prevent scroll restoration side effects
+    isUpdatingSelection.current = true;
+    
+    // Save current scroll positions
+    const containerScroll = galleryContainerRef.current?.scrollTop || 0;
+    const windowScroll = window.pageYOffset || document.documentElement.scrollTop;
     
     if (onMemeSelect) {
       onMemeSelect(memeUrl);
     }
+    
+    // Restore scroll positions immediately
+    requestAnimationFrame(() => {
+      if (galleryContainerRef.current) {
+        galleryContainerRef.current.scrollTop = containerScroll;
+      }
+      window.scrollTo(0, windowScroll);
+      
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isUpdatingSelection.current = false;
+      }, 100);
+    });
   };
 
-  // Restore scroll position after selectedMemes changes
+  // Prevent scroll jump on selection change
   useEffect(() => {
-    if (galleryContainerRef.current && scrollPositionRef.current > 0) {
-      // Use requestAnimationFrame to ensure DOM has updated
-      requestAnimationFrame(() => {
-        if (galleryContainerRef.current) {
-          galleryContainerRef.current.scrollTop = scrollPositionRef.current;
-        }
-      });
+    if (isUpdatingSelection.current) {
+      return; // Skip if we're in the middle of updating selection
     }
+    
+    // This effect should only run on external updates, not our own clicks
+    const handleScroll = (e: Event) => {
+      if (isUpdatingSelection.current) {
+        e.preventDefault();
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: false });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [selectedMemes]);
 
   return (
@@ -212,9 +248,16 @@ export const PhotoGallery = ({
       <p className="text-xs sm:text-sm lg:text-md mb-4 sm:mb-6 lg:mb-8 text-center font-light uppercase tracking-widest text-slate-600 dark:text-slate-400">
         Choose from below (can select multiple)
       </p>
+      <div className="h-6 mb-2">
+        {selectedMemes.length > 0 && (
+          <p className="text-xs sm:text-sm text-center font-medium text-slate-700 dark:text-slate-300">
+            Selected: {selectedMemes.length} / 5
+          </p>
+        )}
+      </div>
       <div 
         ref={galleryContainerRef}
-        className="relative mb-4 sm:mb-6 lg:mb-8 min-h-[600px] sm:min-h-[700px] lg:h-[720px] w-full items-start sm:items-center justify-start sm:justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible"
+        className="relative mb-0 sm:mb-4 lg:mb-6 h-auto sm:min-h-[1000px] lg:min-h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-visible"
       >
         <motion.div
           className="relative mx-auto flex w-full max-w-7xl justify-center"
@@ -228,7 +271,7 @@ export const PhotoGallery = ({
             initial="hidden"
             animate={isLoaded ? "visible" : "hidden"}
           >
-            <div className="relative h-full sm:h-[720px] w-full sm:w-[900px] lg:w-[1300px]">
+            <div className={`relative ${isMobile ? '' : 'sm:h-[1000px] lg:h-[720px]'} w-full sm:w-[900px] lg:w-[1300px] mb-4 sm:mb-8`} style={isMobile ? { height: `${Math.ceil(displayMemes.length / 2) * (photoSize + 40) + 20}px` } : {}}>
               {/* Render photos in reverse order so that higher z-index photos are rendered later in the DOM */}
               {[...photos].reverse().map((photo) => (
                 <motion.div
@@ -252,8 +295,13 @@ export const PhotoGallery = ({
                     src={photo.src}
                     alt="Meme"
                     direction={photo.direction}
-                    onClick={() => handleMemeClick(photo.src)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleMemeClick(photo.src);
+                    }}
                     isSelected={selectedMemes.includes(photo.src)}
+                    isDisabled={selectedMemes.length >= 5 && !selectedMemes.includes(photo.src)}
                   />
                 </motion.div>
               ))}
@@ -292,6 +340,7 @@ export const Photo = ({
   height,
   onClick,
   isSelected = false,
+  isDisabled = false,
   ...props
 }: {
   src: string;
@@ -300,18 +349,30 @@ export const Photo = ({
   direction?: Direction;
   width: number;
   height: number;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   isSelected?: boolean;
+  isDisabled?: boolean;
 }) => {
   const [rotation, setRotation] = useState<number>(0);
   const x = useMotionValue(200);
   const y = useMotionValue(200);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
     const randomRotation =
       getRandomNumberInRange(0.5, 2) * (direction === "left" ? -1 : 1);
     setRotation(randomRotation);
-  }, []);
+    
+    // Detect if device has touch capability
+    const checkTouchDevice = () => {
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    
+    checkTouchDevice();
+    // Re-check on resize in case of device orientation change
+    window.addEventListener('resize', checkTouchDevice);
+    return () => window.removeEventListener('resize', checkTouchDevice);
+  }, [direction]);
 
   function handleMouse(event: {
     currentTarget: { getBoundingClientRect: () => any };
@@ -330,18 +391,18 @@ export const Photo = ({
 
   return (
     <motion.div
-      drag
+      drag={!isDisabled && !isTouchDevice}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-      whileTap={{ scale: 1.2, zIndex: 20 }}
-      whileHover={{
+      whileTap={!isDisabled ? { scale: 1.2, zIndex: 20 } : {}}
+      whileHover={!isDisabled && !isTouchDevice ? {
         scale: isSelected ? 0.95 : 1.1,
         rotateZ: rotation + 2 * (direction === "left" ? -1 : 1),
         zIndex: 20,
-      }}
-      whileDrag={{
+      } : {}}
+      whileDrag={!isDisabled && !isTouchDevice ? {
         scale: 1.1,
         zIndex: 20,
-      }}
+      } : {}}
       initial={{
         rotate: rotation,
         scale: isSelected ? 0.9 : 1,
@@ -361,17 +422,22 @@ export const Photo = ({
         WebkitTouchCallout: "none",
         WebkitUserSelect: "none",
         userSelect: "none",
-        touchAction: "none",
+        touchAction: isTouchDevice ? "manipulation" : "none",
+        opacity: isDisabled ? 0.5 : 1,
       }}
-      className={cn(className, "relative mx-auto shrink-0 cursor-pointer")}
-      onMouseMove={handleMouse}
-      onMouseLeave={resetMouse}
-      onClick={onClick}
+      className={cn(className, `relative mx-auto shrink-0 ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`)}
+      onMouseMove={!isDisabled ? handleMouse : undefined}
+      onMouseLeave={!isDisabled ? resetMouse : undefined}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isDisabled && onClick) onClick(e);
+      }}
       draggable={false}
     >
       <div className="relative h-full w-full overflow-hidden rounded-3xl shadow-sm">
         <MotionImage
-          className={cn("rounded-3xl object-cover w-full h-full")}
+          className={cn("rounded-3xl object-cover w-full h-full", isDisabled && "grayscale")}
           src={src}
           alt={alt}
           {...props}
@@ -379,10 +445,12 @@ export const Photo = ({
         />
         <div className="absolute top-3 left-3">
           <div
-            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center cursor-pointer ${
+            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
               isSelected
                 ? "bg-black border-black text-white"
-                : "bg-white border-gray-300 hover:border-gray-400"
+                : isDisabled 
+                  ? "bg-gray-200 border-gray-300 cursor-not-allowed"
+                  : "bg-white border-gray-300 hover:border-gray-400 cursor-pointer"
             }`}
           >
             {isSelected && (

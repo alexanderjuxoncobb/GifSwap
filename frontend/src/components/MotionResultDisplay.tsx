@@ -13,6 +13,9 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
   const [currentIndex, setCurrentIndex] = useState(0);
   const [, setIsDragging] = useState(false);
   
+  // Detect if the user is on a mobile device
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
   const dragX = useMotionValue(0);
   const dragY = useMotionValue(0);
   
@@ -76,7 +79,7 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
     }
   };
 
-  const handleCopyToClipboard = async (gifUrl: string) => {
+  const handleShare = async (gifUrl: string, index: number) => {
     try {
       // Use the optimize endpoint to ensure proper GIF format
       const optimizeResponse = await fetch(`${API_BASE_URL}/api/optimize-gif`, {
@@ -101,31 +104,55 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
         bytes[i] = binaryString.charCodeAt(i);
       }
       
-      // Use video/mp4 for WhatsApp compatibility
+      // Use appropriate MIME type
       const mimeType = format === 'mp4' ? 'video/mp4' : 'image/gif';
+      const fileExtension = format === 'mp4' ? 'mp4' : 'gif';
       const blob = new Blob([bytes], { type: mimeType });
       
-      if (navigator.clipboard && window.ClipboardItem) {
-        const clipboardData: Record<string, Blob> = format === 'mp4' 
-          ? { 'video/mp4': blob }
-          : { 'image/gif': blob };
+      // Try file sharing if available
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], `reaction-${index + 1}.${fileExtension}`, { 
+          type: mimeType,
+          lastModified: new Date().getTime()
+        });
         
-        await navigator.clipboard.write([
-          new ClipboardItem(clipboardData)
-        ]);
-        alert(format === 'mp4' ? 'Video copied to clipboard!' : 'GIF copied to clipboard!');
-      } else {
-        await navigator.clipboard.writeText(gifUrl);
-        alert('Image URL copied to clipboard!');
+        const shareData = {
+          files: [file],
+          title: 'Check out my reaction!',
+          text: 'Created with GifSwap'
+        };
+        
+        // Check if the browser can share files
+        if (navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData);
+            return; // Successfully shared
+          } catch (shareError) {
+            // If user cancelled, don't show error
+            if (shareError instanceof Error && shareError.name === 'AbortError') {
+              return;
+            }
+            console.log('File share failed:', shareError);
+          }
+        }
       }
+      
+      // Fallback to download if Web Share API is not available
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reaction-${index + 1}.${fileExtension}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
     } catch (error) {
-      console.error('Copy error:', error);
-      try {
-        await navigator.clipboard.writeText(gifUrl);
-        alert('Image URL copied to clipboard!');
-      } catch (fallbackError) {
-        alert('Failed to copy to clipboard. Your browser may not support this feature.');
-      }
+      console.error('Share/Download error:', error);
+      
+      // Ultimate fallback: open the GIF in a new tab
+      window.open(gifUrl, '_blank');
+      alert('Unable to share directly. The image has been opened in a new tab - you can long press to save or share it.');
     }
   };
 
@@ -225,11 +252,11 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
               whileHover={{ scale: index === currentIndex ? 1.05 : 0.8 }}
               whileTap={{ scale: index === currentIndex ? 0.95 : 0.8 }}
             >
-              <div className="p-4">
+              <div className="p-4 flex flex-col items-center justify-center">
                 <img
                   src={gifUrl}
                   alt={`Face swap result ${index + 1}`}
-                  className="max-w-full h-auto mx-auto rounded-2xl shadow-2xl cursor-grab active:cursor-grabbing"
+                  className="block max-w-full h-auto object-contain rounded-2xl shadow-2xl cursor-grab active:cursor-grabbing"
                   draggable={false}
                 />
                 <motion.div 
@@ -238,48 +265,74 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
                   animate={{ opacity: index === currentIndex ? 1 : 0, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <motion.button
-                    onClick={() => handleDownload(gifUrl, index)}
-                    className="bg-black hover:bg-gray-800 text-white font-light py-2 px-4 rounded-sm transition-colors flex-1 flex items-center justify-center cursor-pointer text-sm"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  {isMobile ? (
+                    <motion.button
+                      onClick={() => handleShare(gifUrl, index)}
+                      className="bg-black hover:bg-gray-800 text-white font-light py-2 px-4 rounded-sm transition-colors flex-1 flex items-center justify-center cursor-pointer text-sm"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                    Download
-                  </motion.button>
-                  <motion.button
-                    onClick={() => handleCopyToClipboard(gifUrl)}
-                    className="bg-white hover:bg-gray-100 text-black font-light py-2 px-4 rounded-sm transition-colors border border-gray-300 flex items-center justify-center cursor-pointer text-sm"
-                    title="Copy to clipboard"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </motion.button>
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                        />
+                      </svg>
+                      Share GIF
+                    </motion.button>
+                  ) : (
+                    <>
+                      <motion.button
+                        onClick={() => handleDownload(gifUrl, index)}
+                        className="bg-black hover:bg-gray-800 text-white font-light py-2 px-4 rounded-sm transition-colors flex-1 flex items-center justify-center cursor-pointer text-sm"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                        Download
+                      </motion.button>
+                      <motion.button
+                        onClick={() => handleShare(gifUrl, index)}
+                        className="bg-white hover:bg-gray-100 text-black font-light py-2 px-4 rounded-sm transition-colors border border-gray-300 flex items-center justify-center cursor-pointer text-sm"
+                        title="Share"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                          />
+                        </svg>
+                      </motion.button>
+                    </>
+                  )}
                 </motion.div>
               </div>
             </motion.div>
@@ -305,7 +358,7 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        {validResults.length > 1 && (
+        {validResults.length > 1 && !isMobile && (
           <motion.button
             onClick={handleDownloadAll}
             className="bg-black hover:bg-gray-800 text-white font-light py-2 px-4 rounded-sm transition-colors flex items-center justify-center cursor-pointer text-sm"
