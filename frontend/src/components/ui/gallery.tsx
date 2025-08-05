@@ -255,8 +255,7 @@ export const PhotoGallery = ({
       )}
       <div 
         ref={galleryContainerRef}
-        className="relative mb-4 sm:mb-8 lg:mb-8 min-h-[600px] sm:min-h-[1000px] lg:min-h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        className="relative mb-4 sm:mb-8 lg:mb-8 min-h-[600px] sm:min-h-[1000px] lg:min-h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-visible"
       >
         <motion.div
           className="relative mx-auto flex w-full max-w-7xl justify-center"
