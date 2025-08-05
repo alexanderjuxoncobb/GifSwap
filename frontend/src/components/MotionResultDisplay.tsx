@@ -248,7 +248,7 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
                 <img
                   src={gifUrl}
                   alt={`Face swap result ${index + 1}`}
-                  className="max-w-full h-auto mx-auto rounded-2xl shadow-2xl cursor-grab active:cursor-grabbing"
+                  className="block max-w-full h-auto object-contain rounded-2xl shadow-2xl cursor-grab active:cursor-grabbing"
                   draggable={false}
                 />
                 <motion.div 

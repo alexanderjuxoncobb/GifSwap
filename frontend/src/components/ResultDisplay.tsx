@@ -215,7 +215,7 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
                   <img
                     src={gifUrl}
                     alt={`Face swap result ${index + 1}`}
-                    className="max-w-full h-auto mx-auto rounded-2xl"
+                    className="block max-w-full h-auto object-contain rounded-2xl"
                   />
                 </div>
                 <div className="flex gap-2">

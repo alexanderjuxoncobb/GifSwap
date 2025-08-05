@@ -292,8 +292,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                     <img
                       src={gifUrl}
                       alt={`Face swap result ${index + 1}`}
-                      className="w-auto h-auto max-w-full mx-auto rounded-lg shadow-md"
-                      style={{ maxHeight: '600px', minHeight: '200px' }}
+                      className="block max-w-full max-h-[600px] min-h-[200px] w-full h-full object-contain rounded-lg shadow-md"
                     />
                   </motion.div>
                 </div>
