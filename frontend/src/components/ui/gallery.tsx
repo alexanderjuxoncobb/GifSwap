@@ -171,15 +171,15 @@ export const PhotoGallery = ({
     // Tablet layout: 3 columns with 30px gap (180px GIF size)
     const tabletRow = Math.floor(index / 3);
     const tabletCol = index % 3;
-    // Position from center, accounting for GIF width (180px / 2 = 90px)
-    const tabletX = (tabletCol - 1) * 210 - 90;  // Subtract half width
+    // Position from center: center column at 0, left at -210px, right at +210px
+    const tabletX = (tabletCol - 1) * 210;
     const tabletY = tabletRow * 240;
 
     // Desktop layout: 5 columns with 60px gap (220px GIF size)
     const desktopRow = Math.floor(index / 5);
     const desktopCol = index % 5;
-    // Position from center, accounting for GIF width (220px / 2 = 110px)
-    const desktopX = (desktopCol - 2) * 280 - 110;  // Subtract half width
+    // Position from center: center column at 0, spread evenly left and right
+    const desktopX = (desktopCol - 2) * 280;
     const desktopY = desktopRow * 260;
 
     return {
@@ -230,7 +230,7 @@ export const PhotoGallery = ({
       </p>
       <div 
         ref={galleryContainerRef}
-        className="relative mb-4 sm:mb-6 lg:mb-8 min-h-[600px] sm:min-h-[700px] lg:h-[720px] w-full items-start sm:items-center justify-start sm:justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible"
+        className="relative mb-4 sm:mb-6 lg:mb-8 min-h-[600px] sm:min-h-[700px] lg:h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible"
       >
         <motion.div
           className="relative mx-auto flex w-full max-w-7xl justify-center"
