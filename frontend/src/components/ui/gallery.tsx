@@ -248,11 +248,13 @@ export const PhotoGallery = ({
       <p className="text-xs sm:text-sm lg:text-md mb-4 sm:mb-6 lg:mb-8 text-center font-light uppercase tracking-widest text-slate-600 dark:text-slate-400">
         Choose from below (can select multiple)
       </p>
-      {selectedMemes.length > 0 && (
-        <p className="text-xs sm:text-sm mb-2 text-center font-medium text-slate-700 dark:text-slate-300">
-          Selected: {selectedMemes.length} / 5
-        </p>
-      )}
+      <div className="h-6 mb-2">
+        {selectedMemes.length > 0 && (
+          <p className="text-xs sm:text-sm text-center font-medium text-slate-700 dark:text-slate-300">
+            Selected: {selectedMemes.length} / 5
+          </p>
+        )}
+      </div>
       <div 
         ref={galleryContainerRef}
         className="relative mb-2 sm:mb-8 lg:mb-8 h-auto sm:min-h-[1000px] lg:min-h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-visible"
