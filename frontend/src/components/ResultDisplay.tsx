@@ -67,7 +67,27 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
 
   const handleShare = async (gifUrl: string, index: number) => {
     try {
-      // Use the optimize endpoint to ensure proper GIF format
+      // First, try to share the URL directly (simpler and more reliable)
+      if (navigator.share) {
+        try {
+          const shareData = {
+            title: 'Check out my reaction!',
+            text: 'Created with GifSwap',
+            url: gifUrl
+          };
+          
+          await navigator.share(shareData);
+          return; // Successfully shared URL
+        } catch (shareError) {
+          // If user cancelled, don't show error
+          if (shareError instanceof Error && shareError.name === 'AbortError') {
+            return;
+          }
+          console.log('URL share failed, trying file share:', shareError);
+        }
+      }
+
+      // If URL share failed or not available, try file share
       const optimizeResponse = await fetch(`${API_BASE_URL}/api/optimize-gif`, {
         method: 'POST',
         headers: {
@@ -95,7 +115,7 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
       const fileExtension = format === 'mp4' ? 'mp4' : 'gif';
       const blob = new Blob([bytes], { type: mimeType });
       
-      // Check if Web Share API is available and supports file sharing
+      // Try file sharing if available
       if (navigator.share && navigator.canShare) {
         const file = new File([blob], `reaction-${index + 1}.${fileExtension}`, { 
           type: mimeType,
@@ -103,19 +123,25 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
         });
         
         const shareData = {
-          files: [file],
-          title: 'Check out my reaction!',
-          text: 'Created with GifSwap'
+          files: [file]
         };
         
         // Check if the browser can share files
         if (navigator.canShare(shareData)) {
-          await navigator.share(shareData);
-          return; // Successfully shared
+          try {
+            await navigator.share(shareData);
+            return; // Successfully shared
+          } catch (shareError) {
+            // If user cancelled, don't show error
+            if (shareError instanceof Error && shareError.name === 'AbortError') {
+              return;
+            }
+            console.log('File share failed:', shareError);
+          }
         }
       }
       
-      // Fallback to download if Web Share API is not available
+      // Fallback to download
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -128,9 +154,19 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
     } catch (error) {
       console.error('Share/Download error:', error);
       
-      // Ultimate fallback: open the GIF in a new tab
-      window.open(gifUrl, '_blank');
-      alert('Unable to share directly. The image has been opened in a new tab - you can long press to save or share it.');
+      // Final fallback: direct download from server
+      try {
+        const a = document.createElement('a');
+        a.href = `${API_BASE_URL}/api/download-whatsapp-video?url=${encodeURIComponent(gifUrl)}`;
+        a.download = `reaction-${index + 1}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch (downloadError) {
+        // Ultimate fallback: open in new tab
+        window.open(gifUrl, '_blank');
+        alert('Unable to share directly. The image has been opened in a new tab - you can long press to save or share it.');
+      }
     }
   };
 
