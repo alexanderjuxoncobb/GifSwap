@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MotionImageUpload from './components/MotionImageUpload';
 import IndividualFaceUpload from './components/IndividualFaceUpload';
@@ -252,6 +252,11 @@ function App() {
     setProgress(0);
     setCompletedCount(0);
   };
+
+  // Scroll to top when app state changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [appState]);
 
   return (
     <MotionTrackingProvider>
