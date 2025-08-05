@@ -255,7 +255,7 @@ export const PhotoGallery = ({
       )}
       <div 
         ref={galleryContainerRef}
-        className="relative mb-4 sm:mb-8 lg:mb-8 h-auto sm:min-h-[1000px] lg:min-h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-visible"
+        className="relative mb-2 sm:mb-8 lg:mb-8 h-auto sm:min-h-[1000px] lg:min-h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-visible"
       >
         <motion.div
           className="relative mx-auto flex w-full max-w-7xl justify-center"
@@ -269,7 +269,7 @@ export const PhotoGallery = ({
             initial="hidden"
             animate={isLoaded ? "visible" : "hidden"}
           >
-            <div className={`relative ${isMobile ? '' : 'sm:h-[1000px] lg:h-[720px]'} w-full sm:w-[900px] lg:w-[1300px] mb-20`} style={isMobile ? { height: `${Math.ceil(displayMemes.length / 2) * (photoSize + 40) + 100}px` } : {}}>
+            <div className={`relative ${isMobile ? '' : 'sm:h-[1000px] lg:h-[720px]'} w-full sm:w-[900px] lg:w-[1300px] mb-20`} style={isMobile ? { height: `${Math.ceil(displayMemes.length / 2) * (photoSize + 40) + 20}px` } : {}}>
               {/* Render photos in reverse order so that higher z-index photos are rendered later in the DOM */}
               {[...photos].reverse().map((photo) => (
                 <motion.div
