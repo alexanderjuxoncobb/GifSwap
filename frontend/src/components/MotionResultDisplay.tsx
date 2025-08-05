@@ -109,7 +109,7 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
       const fileExtension = format === 'mp4' ? 'mp4' : 'gif';
       const blob = new Blob([bytes], { type: mimeType });
       
-      // Check if Web Share API is available and supports file sharing
+      // Try file sharing if available
       if (navigator.share && navigator.canShare) {
         const file = new File([blob], `reaction-${index + 1}.${fileExtension}`, { 
           type: mimeType,
@@ -124,8 +124,16 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
         
         // Check if the browser can share files
         if (navigator.canShare(shareData)) {
-          await navigator.share(shareData);
-          return; // Successfully shared
+          try {
+            await navigator.share(shareData);
+            return; // Successfully shared
+          } catch (shareError) {
+            // If user cancelled, don't show error
+            if (shareError instanceof Error && shareError.name === 'AbortError') {
+              return;
+            }
+            console.log('File share failed:', shareError);
+          }
         }
       }
       
