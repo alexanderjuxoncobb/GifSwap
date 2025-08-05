@@ -73,10 +73,13 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
     }
   };
 
-  const handleCopyToClipboard = async (gifUrl: string) => {
+  const handleShare = async (gifUrl: string, index: number) => {
     try {
-      // Use the optimize endpoint to ensure proper GIF format
-      const optimizeResponse = await fetch(`${API_BASE_URL}/api/optimize-gif`, {
+      const endpoint = `${API_BASE_URL}/api/optimize-gif-original`;
+      const filename = `reaction-${index + 1}.gif`;
+      const mimeType = 'image/gif';
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,46 +87,59 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
         body: JSON.stringify({ gifUrl }),
       });
       
-      if (!optimizeResponse.ok) {
-        throw new Error('Failed to optimize GIF');
+      if (!response.ok) {
+        throw new Error('Failed to process file');
       }
       
-      const { optimizedGif, format } = await optimizeResponse.json();
+      const data = await response.json();
+      const content = data.optimizedGif;
       
       // Convert base64 to blob
-      const base64Data = optimizedGif.split(',')[1];
+      const base64Data = content.split(',')[1];
       const binaryString = atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      // Use video/mp4 for WhatsApp compatibility
-      const mimeType = format === 'mp4' ? 'video/mp4' : 'image/gif';
+      
       const blob = new Blob([bytes], { type: mimeType });
       
-      if (navigator.clipboard && window.ClipboardItem) {
-        const clipboardData: Record<string, Blob> = format === 'mp4' 
-          ? { 'video/mp4': blob }
-          : { 'image/gif': blob };
+      // Check if Web Share API is available and supports file sharing
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], filename, { 
+          type: mimeType,
+          lastModified: new Date().getTime()
+        });
         
-        await navigator.clipboard.write([
-          new ClipboardItem(clipboardData)
-        ]);
-        alert(format === 'mp4' ? 'Video copied to clipboard!' : 'GIF copied to clipboard!');
-      } else {
-        // Fallback: copy the URL if clipboard API not supported
-        await navigator.clipboard.writeText(gifUrl);
-        alert('Image URL copied to clipboard!');
+        const shareData = {
+          files: [file],
+          title: 'Check out my reaction!',
+          text: 'Created with GifSwap'
+        };
+        
+        // Check if the browser can share files
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          return; // Successfully shared
+        }
       }
+      
+      // Fallback to download if Web Share API is not available
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
     } catch (error) {
-      console.error('Copy error:', error);
-      // Fallback: try to copy URL
-      try {
-        await navigator.clipboard.writeText(gifUrl);
-        alert('Image URL copied to clipboard!');
-      } catch (fallbackError) {
-        alert('Failed to copy to clipboard. Your browser may not support this feature.');
-      }
+      console.error('Share/Download error:', error);
+      
+      // Ultimate fallback: open the GIF in a new tab
+      window.open(gifUrl, '_blank');
+      alert('Unable to share directly. The image has been opened in a new tab - you can long press to save or share it.');
     }
   };
 
@@ -241,7 +257,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                 </div>
                 <div className="p-3 sm:p-4 bg-white border-t border-gray-100">
                   <MotionButton
-                    onClick={() => isMobile ? handleCopyToClipboard(gifUrl) : handleDownload(gifUrl, index)}
+                    onClick={() => isMobile ? handleShare(gifUrl, index) : handleDownload(gifUrl, index)}
                     variant="primary"
                     size="md"
                     className="w-full flex items-center justify-center"
@@ -257,12 +273,12 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d={isMobile 
-                          ? "M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          ? "M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
                           : "M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                         }
                       />
                     </svg>
-                    {isMobile ? 'Copy GIF' : 'Download GIF'}
+                    {isMobile ? 'Share GIF' : 'Download GIF'}
                   </MotionButton>
                 </div>
               </>
