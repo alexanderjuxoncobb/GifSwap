@@ -21,7 +21,8 @@
       "Bash(npm run build:*)",
       "Bash(git add:*)",
       "mcp__context7__resolve-library-id",
-      "mcp__filesystem__edit_file"
+      "mcp__filesystem__edit_file",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
