@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MotionButton } from './ui/motion-button';
 import { API_BASE_URL } from '../config';
@@ -14,6 +15,7 @@ interface ResultDisplayProps {
 export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProcessing, processingStatus }: ResultDisplayProps) {
   // Detect if the user is on a mobile device
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const [hasSeenInstructions, setHasSeenInstructions] = useState(false);
   const handleDownload = async (gifUrl: string, index: number) => {
     try {
       const endpoint = `${API_BASE_URL}/api/optimize-gif-original`;
@@ -74,6 +76,13 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
   };
 
   const handleShare = async (gifUrl: string, index: number) => {
+    // Show instructions on first click
+    if (!hasSeenInstructions && isMobile) {
+      alert('To share your GIF on WhatsApp:\n\n1. Click OK\n2. Click Share again\n3. Click the "Allow" button when prompted\n4. Choose WhatsApp from the share menu\n5. Select a friend or group\n6. Send the GIF\n\nOnce sent, you can copy/save the GIF directly from WhatsApp!\n\n(Sorry, I cba to set up the copy functionality on web 😅)');
+      setHasSeenInstructions(true);
+      return;
+    }
+    
     try {
       // First, try to share the URL directly (simpler and more reliable)
       if (navigator.share) {
@@ -87,11 +96,8 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
           await navigator.share(shareData);
           return; // Successfully shared URL
         } catch (shareError) {
-          // If user cancelled, show instructions
+          // If user cancelled, don't show error
           if (shareError instanceof Error && shareError.name === 'AbortError') {
-            setTimeout(() => {
-              alert('To share your GIF on WhatsApp:\n\n1. Click Share again\n2. Click the "Allow" button (might be red)\n3. Choose WhatsApp from the share menu\n4. Select a friend or group\n5. Send the GIF\n\nOnce sent, you can copy/save the GIF directly from WhatsApp!\n\n(Sorry, I cba to set up the copy functionality on web 😅)');
-            }, 100);
             return;
           }
           console.log('URL share failed, trying file share:', shareError);
