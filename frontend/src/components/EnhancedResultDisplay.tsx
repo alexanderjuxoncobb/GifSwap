@@ -73,67 +73,63 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
     }
   };
 
-  const handleCopyToClipboard = async (gifUrl: string, _index: number) => {
+  const handleSaveToDevice = async (gifUrl: string, index: number) => {
     try {
-      // First fetch the image as a blob
-      const response = await fetch(gifUrl);
-      await response.blob();
+      // For mobile devices, trigger a download which will save to camera roll
+      const endpoint = `${API_BASE_URL}/api/optimize-gif-original`;
+      const filename = `reaction-${index + 1}.gif`;
       
-      // Try to use the Clipboard API to copy the image
-      if (navigator.clipboard && navigator.clipboard.write) {
-        try {
-          // Convert GIF to PNG for better clipboard compatibility
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = gifUrl;
-          });
-          
-          // Create canvas and draw image
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) throw new Error('Failed to get canvas context');
-          
-          ctx.drawImage(img, 0, 0);
-          
-          // Convert to blob
-          const pngBlob = await new Promise<Blob>((resolve, reject) => {
-            canvas.toBlob((blob) => {
-              if (blob) resolve(blob);
-              else reject(new Error('Failed to create blob'));
-            }, 'image/png');
-          });
-          
-          // Copy to clipboard
-          await navigator.clipboard.write([
-            new ClipboardItem({
-              'image/png': pngBlob
-            })
-          ]);
-          
-          // Show success feedback
-          alert('GIF copied to clipboard! You can now paste it in WhatsApp or other apps.');
-          return;
-        } catch (clipboardError) {
-          console.error('Clipboard API error:', clipboardError);
-        }
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ gifUrl }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to process file');
       }
       
-      // Fallback: Copy URL to clipboard
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(gifUrl);
-        alert('GIF link copied to clipboard!');
-      } else {
-        throw new Error('Clipboard not supported');
+      const data = await response.json();
+      const content = data.optimizedGif;
+      
+      // Convert base64 to blob
+      const base64Data = content.split(',')[1];
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
       }
+      
+      const blob = new Blob([bytes], { type: 'image/gif' });
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 100);
+      
+      // Show instructions
+      setTimeout(() => {
+        alert('GIF downloaded! You can now:\n\n1. Open WhatsApp\n2. Tap the attachment icon\n3. Select "Gallery" or "Photos"\n4. Choose the downloaded GIF\n\nThe GIF should be in your Downloads or Photos folder.');
+      }, 500);
+      
     } catch (error) {
-      console.error('Copy error:', error);
-      alert('Unable to copy GIF. Please try downloading instead.');
+      console.error('Save error:', error);
+      
+      // Fallback: open in new tab
+      window.open(gifUrl, '_blank');
+      alert('GIF opened in new tab. Long press the image and select "Save Image" to download it to your device.');
     }
   };
 
@@ -381,7 +377,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                         Share
                       </MotionButton>
                       <MotionButton
-                        onClick={() => handleCopyToClipboard(gifUrl, index)}
+                        onClick={() => handleSaveToDevice(gifUrl, index)}
                         variant="secondary"
                         size="md"
                         className="flex-1 flex items-center justify-center"
@@ -396,10 +392,10 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                           />
                         </svg>
-                        Copy
+                        Save
                       </MotionButton>
                     </div>
                   ) : (
