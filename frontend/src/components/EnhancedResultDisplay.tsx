@@ -19,7 +19,6 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
   const handleDownload = async (gifUrl: string, index: number) => {
     try {
       const endpoint = `${API_BASE_URL}/api/optimize-gif`;
-      const filename = `reaction-${index + 1}.gif`;
       const mimeType = 'image/gif';
       
       const response = await fetch(endpoint, {
@@ -88,7 +87,6 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
     try {
       // Always try file share first to send the actual GIF
       const endpoint = `${API_BASE_URL}/api/optimize-gif`;
-      const filename = `reaction-${index + 1}.gif`;
       const mimeType = 'image/gif';
       
       const response = await fetch(endpoint, {
