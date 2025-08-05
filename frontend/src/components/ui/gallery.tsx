@@ -139,8 +139,24 @@ export const PhotoGallery = ({
     "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjV3azJ3YzZyM282YXc5eXo5eDR2NXJheW44dHdwMzViaGFodG1payZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/CycIvRahkUp0Y/giphy.gif",
   ];
 
-  // Generate responsive grid positions for all memes
-  const photos = allMemes.map((src, index) => {
+  // Check if we're in 2-column mode (mobile)
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Use only 14 GIFs for 2-column layout, all 15 for other layouts
+  const displayMemes = isMobile ? allMemes.slice(0, 14) : allMemes;
+  
+  // Generate responsive grid positions for display memes
+  const photos = displayMemes.map((src, index) => {
     // Mobile layout: 2 columns with dynamic sizing
     const mobileRow = Math.floor(index / 2);
     const mobileCol = index % 2;
