@@ -77,27 +77,7 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
     }
     
     try {
-      // First, try to share the URL directly (simpler and more reliable)
-      if (navigator.share) {
-        try {
-          const shareData = {
-            title: 'Check out my reaction!',
-            text: 'Made with https://gifswap-production.up.railway.app/',
-            url: gifUrl
-          };
-          
-          await navigator.share(shareData);
-          return; // Successfully shared URL
-        } catch (shareError) {
-          // If user cancelled, don't show error
-          if (shareError instanceof Error && shareError.name === 'AbortError') {
-            return;
-          }
-          console.log('URL share failed, trying file share:', shareError);
-        }
-      }
-
-      // If URL share failed or not available, try file share
+      // Always try file share to send the actual GIF
       const optimizeResponse = await fetch(`${API_BASE_URL}/api/optimize-gif`, {
         method: 'POST',
         headers: {

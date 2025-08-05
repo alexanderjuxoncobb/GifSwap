@@ -29,6 +29,10 @@ function App() {
       if (prev.includes(gifUrl)) {
         return prev.filter(url => url !== gifUrl);
       } else {
+        if (prev.length >= 5) {
+          alert('You can select a maximum of 5 reactions. Please deselect one to add another.');
+          return prev;
+        }
         return [...prev, gifUrl];
       }
     });
