@@ -71,7 +71,7 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
   const handleShare = async (gifUrl: string, index: number) => {
     // Show instructions on first click
     if (!hasSeenInstructions && isMobile) {
-      alert('To share your GIF on WhatsApp:\n\n1. Click OK\n2. Click Share again\n3. Click the "Allow" button when prompted\n4. Choose WhatsApp from the share menu\n5. Select a friend or group\n6. Send the GIF\n\nOnce sent, you can copy/save the GIF directly from WhatsApp!\n\n(Sorry, I cba to set up the copy functionality on web 😅)');
+      alert('To share your GIF on WhatsApp:\n\n1. Click OK\n2. Click Share again\n3. Choose WhatsApp from the share menu\n4. Select a friend or group\n5. Send the GIF\n\nOnce sent, you can copy/save the GIF directly from WhatsApp!\n\n(Sorry, I cba to set up the copy functionality on web 😅)');
       setHasSeenInstructions(true);
       return;
     }
