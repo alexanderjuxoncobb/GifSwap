@@ -34,24 +34,26 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
         throw new Error('Failed to process file');
       }
       
-      const data = await response.json();
-      const content = data.optimizedGif;
+      const { optimizedGif, format } = await response.json();
       
       // Convert base64 to blob
-      const base64Data = content.split(',')[1];
+      const base64Data = optimizedGif.split(',')[1];
       const binaryString = atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
       
-      const blob = new Blob([bytes], { type: mimeType });
+      // Use the format from response
+      const actualMimeType = format === 'mp4' ? 'video/mp4' : mimeType;
+      const actualExtension = format === 'mp4' ? 'mp4' : 'gif';
+      const blob = new Blob([bytes], { type: actualMimeType });
       
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filename;
+      a.download = `reaction-${index + 1}.${actualExtension}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -101,23 +103,25 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
         throw new Error('Failed to process file');
       }
       
-      const data = await response.json();
-      const content = data.optimizedGif;
+      const { optimizedGif, format } = await response.json();
       
       // Convert base64 to blob
-      const base64Data = content.split(',')[1];
+      const base64Data = optimizedGif.split(',')[1];
       const binaryString = atob(base64Data);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
       
-      const blob = new Blob([bytes], { type: mimeType });
+      // Use the format from response
+      const actualMimeType = format === 'mp4' ? 'video/mp4' : mimeType;
+      const actualExtension = format === 'mp4' ? 'mp4' : 'gif';
+      const blob = new Blob([bytes], { type: actualMimeType });
       
       // Try file sharing if available
       if (navigator.share && navigator.canShare) {
-        const file = new File([blob], filename, { 
-          type: mimeType,
+        const file = new File([blob], `reaction-${index + 1}.${actualExtension}`, { 
+          type: actualMimeType,
           lastModified: new Date().getTime()
         });
         
@@ -146,7 +150,7 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = filename;
+      a.download = `reaction-${index + 1}.${actualExtension}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
