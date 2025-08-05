@@ -40,6 +40,7 @@ router.post('/optimize-gif', async (req: Request<{}, {}, OptimizeRequest>, res: 
     }
     
     console.log('Optimizing GIF:', gifUrl);
+    console.log('Request from:', req.headers['user-agent']);
     
     // Download the GIF
     const gifBuffer = await downloadFile(gifUrl);
@@ -76,19 +77,8 @@ router.post('/optimize-gif', async (req: Request<{}, {}, OptimizeRequest>, res: 
           })
           .toBuffer();
           
-      } else if (sizeMB > 8) {
-        // Mild optimization for larger files
-        console.log('GIF is', sizeMB.toFixed(2), 'MB, applying mild optimization...');
-        
-        optimizedBuffer = await sharp(gifBuffer, { animated: true })
-          .gif({
-            progressive: true,
-            loop: 0
-          })
-          .toBuffer();
-          
       } else {
-        // For GIFs under 8MB, return original without any quality loss
+        // For GIFs under 15MB, return original without any quality loss
         console.log('GIF is', sizeMB.toFixed(2), 'MB, preserving original quality');
         optimizedBuffer = gifBuffer;
       }
