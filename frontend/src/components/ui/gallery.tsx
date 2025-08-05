@@ -256,6 +256,7 @@ export const PhotoGallery = ({
       <div 
         ref={galleryContainerRef}
         className="relative mb-4 sm:mb-8 lg:mb-8 min-h-[600px] sm:min-h-[1000px] lg:min-h-[720px] w-full items-start sm:items-center justify-center flex z-0 overflow-x-hidden overflow-y-auto sm:overflow-visible"
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <motion.div
           className="relative mx-auto flex w-full max-w-7xl justify-center"
@@ -354,12 +355,23 @@ export const Photo = ({
   const [rotation, setRotation] = useState<number>(0);
   const x = useMotionValue(200);
   const y = useMotionValue(200);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
     const randomRotation =
       getRandomNumberInRange(0.5, 2) * (direction === "left" ? -1 : 1);
     setRotation(randomRotation);
-  }, []);
+    
+    // Detect if device has touch capability
+    const checkTouchDevice = () => {
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    
+    checkTouchDevice();
+    // Re-check on resize in case of device orientation change
+    window.addEventListener('resize', checkTouchDevice);
+    return () => window.removeEventListener('resize', checkTouchDevice);
+  }, [direction]);
 
   function handleMouse(event: {
     currentTarget: { getBoundingClientRect: () => any };
@@ -378,15 +390,15 @@ export const Photo = ({
 
   return (
     <motion.div
-      drag={!isDisabled}
+      drag={!isDisabled && !isTouchDevice}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       whileTap={!isDisabled ? { scale: 1.2, zIndex: 20 } : {}}
-      whileHover={!isDisabled ? {
+      whileHover={!isDisabled && !isTouchDevice ? {
         scale: isSelected ? 0.95 : 1.1,
         rotateZ: rotation + 2 * (direction === "left" ? -1 : 1),
         zIndex: 20,
       } : {}}
-      whileDrag={!isDisabled ? {
+      whileDrag={!isDisabled && !isTouchDevice ? {
         scale: 1.1,
         zIndex: 20,
       } : {}}
@@ -409,7 +421,7 @@ export const Photo = ({
         WebkitTouchCallout: "none",
         WebkitUserSelect: "none",
         userSelect: "none",
-        touchAction: "none",
+        touchAction: isTouchDevice ? "manipulation" : "none",
         opacity: isDisabled ? 0.5 : 1,
       }}
       className={cn(className, `relative mx-auto shrink-0 ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`)}
