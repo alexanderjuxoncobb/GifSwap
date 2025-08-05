@@ -73,6 +73,70 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
     }
   };
 
+  const handleCopyToClipboard = async (gifUrl: string, _index: number) => {
+    try {
+      // First fetch the image as a blob
+      const response = await fetch(gifUrl);
+      await response.blob();
+      
+      // Try to use the Clipboard API to copy the image
+      if (navigator.clipboard && navigator.clipboard.write) {
+        try {
+          // Convert GIF to PNG for better clipboard compatibility
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = gifUrl;
+          });
+          
+          // Create canvas and draw image
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Failed to get canvas context');
+          
+          ctx.drawImage(img, 0, 0);
+          
+          // Convert to blob
+          const pngBlob = await new Promise<Blob>((resolve, reject) => {
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error('Failed to create blob'));
+            }, 'image/png');
+          });
+          
+          // Copy to clipboard
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'image/png': pngBlob
+            })
+          ]);
+          
+          // Show success feedback
+          alert('GIF copied to clipboard! You can now paste it in WhatsApp or other apps.');
+          return;
+        } catch (clipboardError) {
+          console.error('Clipboard API error:', clipboardError);
+        }
+      }
+      
+      // Fallback: Copy URL to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(gifUrl);
+        alert('GIF link copied to clipboard!');
+      } else {
+        throw new Error('Clipboard not supported');
+      }
+    } catch (error) {
+      console.error('Copy error:', error);
+      alert('Unable to copy GIF. Please try downloading instead.');
+    }
+  };
+
   const handleShare = async (gifUrl: string, index: number) => {
     try {
       // First, try to share the URL directly (simpler and more reliable)
@@ -293,30 +357,74 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
                   </motion.div>
                 </div>
                 <div className="p-3 sm:p-4 bg-white border-t border-gray-100">
-                  <MotionButton
-                    onClick={() => isMobile ? handleShare(gifUrl, index) : handleDownload(gifUrl, index)}
-                    variant="primary"
-                    size="md"
-                    className="w-full flex items-center justify-center"
-                  >
-                    <svg
-                      className="w-4 h-4 mr-2"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                  {isMobile ? (
+                    <div className="flex gap-2">
+                      <MotionButton
+                        onClick={() => handleShare(gifUrl, index)}
+                        variant="primary"
+                        size="md"
+                        className="flex-1 flex items-center justify-center"
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                          />
+                        </svg>
+                        Share
+                      </MotionButton>
+                      <MotionButton
+                        onClick={() => handleCopyToClipboard(gifUrl, index)}
+                        variant="secondary"
+                        size="md"
+                        className="flex-1 flex items-center justify-center"
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
+                        </svg>
+                        Copy
+                      </MotionButton>
+                    </div>
+                  ) : (
+                    <MotionButton
+                      onClick={() => handleDownload(gifUrl, index)}
+                      variant="primary"
+                      size="md"
+                      className="w-full flex items-center justify-center"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d={isMobile 
-                          ? "M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                          : "M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        }
-                      />
-                    </svg>
-                    {isMobile ? 'Share GIF' : 'Download GIF'}
-                  </MotionButton>
+                      <svg
+                        className="w-4 h-4 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      Download GIF
+                    </MotionButton>
+                  )}
                 </div>
               </>
             ) : (

@@ -9,6 +9,71 @@ interface ResultDisplayProps {
 export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayProps) {
   // Detect if the user is on a mobile device
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  
+  const handleCopyToClipboard = async (gifUrl: string, _index: number) => {
+    try {
+      // First fetch the image as a blob
+      const response = await fetch(gifUrl);
+      await response.blob();
+      
+      // Try to use the Clipboard API to copy the image
+      if (navigator.clipboard && navigator.clipboard.write) {
+        try {
+          // Convert GIF to PNG for better clipboard compatibility
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = gifUrl;
+          });
+          
+          // Create canvas and draw image
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Failed to get canvas context');
+          
+          ctx.drawImage(img, 0, 0);
+          
+          // Convert to blob
+          const pngBlob = await new Promise<Blob>((resolve, reject) => {
+            canvas.toBlob((blob) => {
+              if (blob) resolve(blob);
+              else reject(new Error('Failed to create blob'));
+            }, 'image/png');
+          });
+          
+          // Copy to clipboard
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              'image/png': pngBlob
+            })
+          ]);
+          
+          // Show success feedback
+          alert('GIF copied to clipboard! You can now paste it in WhatsApp or other apps.');
+          return;
+        } catch (clipboardError) {
+          console.error('Clipboard API error:', clipboardError);
+        }
+      }
+      
+      // Fallback: Copy URL to clipboard
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(gifUrl);
+        alert('GIF link copied to clipboard!');
+      } else {
+        throw new Error('Clipboard not supported');
+      }
+    } catch (error) {
+      console.error('Copy error:', error);
+      alert('Unable to copy GIF. Please try downloading instead.');
+    }
+  };
+
   const handleDownload = async (gifUrl: string, index: number) => {
     try {
       // Use the optimize endpoint to ensure proper GIF format for WhatsApp
@@ -214,25 +279,46 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
                 </div>
                 <div className="flex gap-2">
                   {isMobile ? (
-                    <button
-                      onClick={() => handleShare(gifUrl, index)}
-                      className="bg-black hover:bg-gray-800 text-white font-light py-2 px-4 rounded-sm transition-colors flex-1 flex items-center justify-center cursor-pointer text-sm"
-                    >
-                      <svg
-                        className="w-4 h-4 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    <>
+                      <button
+                        onClick={() => handleShare(gifUrl, index)}
+                        className="bg-black hover:bg-gray-800 text-white font-light py-2 px-4 rounded-sm transition-colors flex-1 flex items-center justify-center cursor-pointer text-sm"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                        />
-                      </svg>
-                      Share GIF
-                    </button>
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                          />
+                        </svg>
+                        Share
+                      </button>
+                      <button
+                        onClick={() => handleCopyToClipboard(gifUrl, index)}
+                        className="bg-white hover:bg-gray-100 text-black font-light py-2 px-4 rounded-sm transition-colors border border-gray-300 flex-1 flex items-center justify-center cursor-pointer text-sm"
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
+                        </svg>
+                        Copy
+                      </button>
+                    </>
                   ) : (
                     <>
                       <button
