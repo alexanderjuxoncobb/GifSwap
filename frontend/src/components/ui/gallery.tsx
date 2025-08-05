@@ -378,18 +378,18 @@ export const Photo = ({
 
   return (
     <motion.div
-      drag
+      drag={!isDisabled}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-      whileTap={{ scale: 1.2, zIndex: 20 }}
-      whileHover={{
+      whileTap={!isDisabled ? { scale: 1.2, zIndex: 20 } : {}}
+      whileHover={!isDisabled ? {
         scale: isSelected ? 0.95 : 1.1,
         rotateZ: rotation + 2 * (direction === "left" ? -1 : 1),
         zIndex: 20,
-      }}
-      whileDrag={{
+      } : {}}
+      whileDrag={!isDisabled ? {
         scale: 1.1,
         zIndex: 20,
-      }}
+      } : {}}
       initial={{
         rotate: rotation,
         scale: isSelected ? 0.9 : 1,
@@ -410,20 +410,21 @@ export const Photo = ({
         WebkitUserSelect: "none",
         userSelect: "none",
         touchAction: "none",
+        opacity: isDisabled ? 0.5 : 1,
       }}
-      className={cn(className, "relative mx-auto shrink-0 cursor-pointer")}
-      onMouseMove={handleMouse}
-      onMouseLeave={resetMouse}
+      className={cn(className, `relative mx-auto shrink-0 ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`)}
+      onMouseMove={!isDisabled ? handleMouse : undefined}
+      onMouseLeave={!isDisabled ? resetMouse : undefined}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (onClick) onClick(e);
+        if (!isDisabled && onClick) onClick(e);
       }}
       draggable={false}
     >
       <div className="relative h-full w-full overflow-hidden rounded-3xl shadow-sm">
         <MotionImage
-          className={cn("rounded-3xl object-cover w-full h-full")}
+          className={cn("rounded-3xl object-cover w-full h-full", isDisabled && "grayscale")}
           src={src}
           alt={alt}
           {...props}
@@ -431,10 +432,12 @@ export const Photo = ({
         />
         <div className="absolute top-3 left-3">
           <div
-            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center cursor-pointer ${
+            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
               isSelected
                 ? "bg-black border-black text-white"
-                : "bg-white border-gray-300 hover:border-gray-400"
+                : isDisabled 
+                  ? "bg-gray-200 border-gray-300 cursor-not-allowed"
+                  : "bg-white border-gray-300 hover:border-gray-400 cursor-pointer"
             }`}
           >
             {isSelected && (
