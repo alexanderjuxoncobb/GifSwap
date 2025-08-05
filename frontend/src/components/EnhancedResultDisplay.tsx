@@ -339,19 +339,19 @@ export default function EnhancedResultDisplay({ resultGifUrls, onReset, isProces
               </div>
             ) : gifUrl && gifUrl.trim() !== '' ? (
               <>
-                <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
+                <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 flex items-center justify-center">
                   <div className="absolute top-2 left-2 z-10 bg-black text-white text-xs font-medium px-2 py-1 rounded-full shadow-md">
                     #{index + 1}
                   </div>
                   <motion.div 
-                    className="relative"
+                    className="relative flex items-center justify-center w-full"
                     whileHover={{ scale: 1.05 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
                     <img
                       src={gifUrl}
                       alt={`Face swap result ${index + 1}`}
-                      className="w-auto h-auto max-w-full rounded-lg shadow-md"
+                      className="w-auto h-auto max-w-full mx-auto rounded-lg shadow-md"
                       style={{ maxHeight: '600px', minHeight: '200px' }}
                     />
                   </motion.div>

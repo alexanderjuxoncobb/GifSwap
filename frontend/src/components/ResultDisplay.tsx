@@ -270,7 +270,7 @@ export default function ResultDisplay({ resultGifUrls, onReset }: ResultDisplayP
           <div key={index} className="p-4 flex-shrink-0 w-full max-w-sm animate-fade-in-up" style={{animationDelay: `${index * 100}ms`}}>
             {gifUrl && gifUrl.trim() !== '' ? (
               <>
-                <div className="mb-4">
+                <div className="mb-4 flex items-center justify-center">
                   <img
                     src={gifUrl}
                     alt={`Face swap result ${index + 1}`}

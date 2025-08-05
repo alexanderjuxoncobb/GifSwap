@@ -244,7 +244,7 @@ export default function MotionResultDisplay({ resultGifUrls, onReset }: MotionRe
               whileHover={{ scale: index === currentIndex ? 1.05 : 0.8 }}
               whileTap={{ scale: index === currentIndex ? 0.95 : 0.8 }}
             >
-              <div className="p-4">
+              <div className="p-4 flex flex-col items-center justify-center">
                 <img
                   src={gifUrl}
                   alt={`Face swap result ${index + 1}`}
